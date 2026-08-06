@@ -30,11 +30,20 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Validate metadata and scripts
         run: |
           python3 -m json.tool sol/version.json >/dev/null
           bash -n tools/sol-*.sh
+      - name: Validate classic episode progression
+        run: |
+          grep -F 'map E1M1 "Hangar: Arrival"' sol/game/MAPINFO
+          grep -Eq '^[[:space:]]*levelnum[[:space:]]*=[[:space:]]*1$' sol/game/MAPINFO
+          grep -Eq '^[[:space:]]*titlepatch[[:space:]]*=[[:space:]]*"WILV00"$' sol/game/MAPINFO
+          grep -Eq '^[[:space:]]*next[[:space:]]*=[[:space:]]*"E1M2"$' sol/game/MAPINFO
+          grep -Eq '^[[:space:]]*secretnext[[:space:]]*=[[:space:]]*"E1M9"$' sol/game/MAPINFO
+          grep -Eq '^[[:space:]]*cluster[[:space:]]*=[[:space:]]*1$' sol/game/MAPINFO
+          ! grep -Eiq '^[[:space:]]*nointermission([[:space:]]|$)' sol/game/MAPINFO
       - name: Package SOL runtime
         run: bash tools/sol-package.sh
       - name: Inspect package and branding
@@ -45,7 +54,6 @@ jobs:
           unzip -Z1 "$archive" | grep -Fx ZSCRIPT
           unzip -Z1 "$archive" | grep -Fx MAPINFO
           unzip -Z1 "$archive" | grep -Fx zscript/sol/bootstrap.zs
-          grep -F 'map E1M1 "Hangar: Arrival"' sol/game/MAPINFO
           test -s branding/sol/sol-icon-master.png
           test -s branding/misc/appicon.png
           test -s branding/misc/appicon.16.png
