@@ -1,0 +1,43 @@
+name: SOL foundation
+
+on:
+  push:
+    branches:
+      - trunk
+      - 'sol/**'
+    paths:
+      - 'sol/**'
+      - 'tools/sol-*.sh'
+      - 'docs/sol/**'
+      - 'SOL.md'
+      - 'ROADMAP.md'
+      - '.github/workflows/sol-foundation.yml'
+  pull_request:
+    paths:
+      - 'sol/**'
+      - 'tools/sol-*.sh'
+      - 'docs/sol/**'
+      - 'SOL.md'
+      - 'ROADMAP.md'
+      - '.github/workflows/sol-foundation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate version metadata
+        run: python3 -m json.tool sol/version.json >/dev/null
+      - name: Package SOL runtime
+        run: bash tools/sol-package.sh
+      - name: Inspect package
+        run: |
+          archive=$(find build/sol -maxdepth 1 -name 'sol-v*.pk3' -print -quit)
+          test -n "$archive"
+          unzip -t "$archive"
+          unzip -Z1 "$archive" | grep -Fx ZSCRIPT
+          unzip -Z1 "$archive" | grep -Fx MAPINFO
+          unzip -Z1 "$archive" | grep -Fx zscript/sol/bootstrap.zs
