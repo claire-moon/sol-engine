@@ -1,0 +1,13 @@
+{
+  "project": "SOL",
+  "component": "sol-engine",
+  "version": "0.0.1-dev",
+  "base": {
+    "project": "UZDoom",
+    "branch": "trunk",
+    "commit": "d82dfa8cb8fda996a46ef158620b6ae9fe2a2dd5"
+  },
+  "runtimePackage": "sol-v0.0.1-dev.pk3",
+  "mapFormat": "UDMF",
+  "developmentMap": "E1M1"
+}
