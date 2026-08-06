@@ -7,19 +7,20 @@
 ## Active — Phase 1: E1M1 Graybox (`v0.1.0`)
 
 - Run the editor-generated E1M1 PWAD beside the SOL runtime package.
-- Establish E1M1 title, progression, application icon, and release metadata.
+- Establish E1M1 title, classic episode progression, application icon, and release metadata.
+- Preserve Doom's normal level-complete statistics and Episode 1 "you are here" intermission map.
 - Complete local Linux playthrough and save/load verification.
 - Keep all inherited UZDoom compilation checks green.
 
-Exit gate: the graybox launches, completes without progression blockers, and records no MAPINFO or ZScript errors.
+Exit gate: the graybox launches, completes without progression blockers, shows the classic Doom intermission, and records no MAPINFO or ZScript errors.
 
 ## Phase 2 — Story Systems (`v0.2.0`)
 
-Add persistent campaign variables, objectives, subtitles, environmental sequences, and save/load-safe event handling.
+Add objectives, subtitles, environmental sequences, reusable event IDs, and save/load-safe story handling within individual Doom maps.
 
-## Phase 3 — Seamless Transition Prototype (`v0.3.0`)
+## Phase 3 — Classic Episode Framework (`v0.3.0`)
 
-Prototype aligned transition anchors, state transfer, masked loading, and E1M1-to-E1M2 regression coverage.
+Iterate on Doom's level-complete screens, episode world map, secret exits, map title patches, par times, and episode-finale presentation without seamless level transfer.
 
 ## Phase 4 — Finished Vertical Slice (`v0.5.0`)
 
