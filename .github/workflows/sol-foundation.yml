@@ -35,6 +35,14 @@ jobs:
         run: |
           python3 -m json.tool sol/version.json >/dev/null
           bash -n tools/sol-*.sh
+          grep -F 'tools/sol-cockpit.sh' tools/sol-cockpit.sh
+          grep -F 'tools/sol-test.sh' tools/sol-run.sh
+          ! grep -F 'command -v uzdoom' tools/sol-run.sh
+      - name: Validate ZScript entry point
+        run: |
+          grep -Fx 'version "4.14"' sol/game/ZSCRIPT
+          grep -Fx '#include "zscript/sol/bootstrap.zs"' sol/game/ZSCRIPT
+          ! grep -Eq '^[[:space:]]*include[[:space:]]' sol/game/ZSCRIPT
       - name: Validate classic episode progression
         run: |
           grep -F 'map E1M1 "Hangar: Arrival"' sol/game/MAPINFO
@@ -54,6 +62,7 @@ jobs:
           unzip -Z1 "$archive" | grep -Fx ZSCRIPT
           unzip -Z1 "$archive" | grep -Fx MAPINFO
           unzip -Z1 "$archive" | grep -Fx zscript/sol/bootstrap.zs
+          unzip -p "$archive" ZSCRIPT | grep -Fx '#include "zscript/sol/bootstrap.zs"'
           test -s branding/sol/sol-icon-master.png
           test -s branding/misc/appicon.png
           test -s branding/misc/appicon.16.png
