@@ -1,14 +1,14 @@
-name: SOL foundation
+name: SOL graybox
 
 on:
   push:
-    branches:
-      - trunk
-      - 'sol/**'
+    branches: [trunk, 'sol/**']
     paths:
       - 'sol/**'
       - 'tools/sol-*.sh'
       - 'docs/sol/**'
+      - 'branding/sol/**'
+      - 'branding/misc/appicon*'
       - 'SOL.md'
       - 'ROADMAP.md'
       - '.github/workflows/sol-foundation.yml'
@@ -17,6 +17,8 @@ on:
       - 'sol/**'
       - 'tools/sol-*.sh'
       - 'docs/sol/**'
+      - 'branding/sol/**'
+      - 'branding/misc/appicon*'
       - 'SOL.md'
       - 'ROADMAP.md'
       - '.github/workflows/sol-foundation.yml'
@@ -29,15 +31,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate version metadata
-        run: python3 -m json.tool sol/version.json >/dev/null
+      - name: Validate metadata and scripts
+        run: |
+          python3 -m json.tool sol/version.json >/dev/null
+          bash -n tools/sol-*.sh
       - name: Package SOL runtime
         run: bash tools/sol-package.sh
-      - name: Inspect package
+      - name: Inspect package and branding
         run: |
-          archive=$(find build/sol -maxdepth 1 -name 'sol-v*.pk3' -print -quit)
+          archive=$(find build/sol -maxdepth 1 -name 'sol-v0.1.0-dev.pk3' -print -quit)
           test -n "$archive"
           unzip -t "$archive"
           unzip -Z1 "$archive" | grep -Fx ZSCRIPT
           unzip -Z1 "$archive" | grep -Fx MAPINFO
           unzip -Z1 "$archive" | grep -Fx zscript/sol/bootstrap.zs
+          grep -F 'map E1M1 "Hangar: Arrival"' sol/game/MAPINFO
+          test -s branding/sol/sol-icon-master.png
+          test -s branding/misc/appicon.png
+          test -s branding/misc/appicon.16.png

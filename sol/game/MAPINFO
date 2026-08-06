@@ -2,3 +2,10 @@ GameInfo
 {
     AddEventHandlers = "SolBootstrap"
 }
+
+map E1M1 "Hangar: Arrival"
+{
+    next = "E1M2"
+    sky1 = "SKY1"
+    music = "$MUSIC_E1M1"
+}

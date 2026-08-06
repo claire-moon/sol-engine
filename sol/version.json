@@ -1,13 +1,9 @@
 {
-  "project": "SOL",
-  "component": "sol-engine",
-  "version": "0.0.1-dev",
-  "base": {
-    "project": "UZDoom",
-    "branch": "trunk",
-    "commit": "d82dfa8cb8fda996a46ef158620b6ae9fe2a2dd5"
-  },
-  "runtimePackage": "sol-v0.0.1-dev.pk3",
-  "mapFormat": "UDMF",
-  "developmentMap": "E1M1"
+  "project": "SOL Engine",
+  "version": "0.1.0-dev",
+  "release": "graybox",
+  "upstream": "UZDoom",
+  "engine_compatibility": "4.14",
+  "map_contract": "E1M1",
+  "editor_contract": "0.1.0-dev"
 }
