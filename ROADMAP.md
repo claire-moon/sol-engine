@@ -3,18 +3,9 @@
 ## Completed
 
 - `v0.0.1`: runtime package foundation, shared editor contract, launch scripts, and E1M1 design specification.
+- `v0.1.0`: playable E1M1 graybox baseline, classic Doom episode progression, shared branding, deterministic mandatory presentation/gameplay stack contract, and fail-closed SOL launch validation.
 
-## Active — Phase 1: E1M1 Graybox (`v0.1.0`)
-
-- Run the editor-generated E1M1 PWAD beside the SOL runtime package.
-- Establish E1M1 title, classic episode progression, application icon, and release metadata.
-- Preserve Doom's normal level-complete statistics and Episode 1 "you are here" intermission map.
-- Complete local Linux playthrough and save/load verification.
-- Keep all inherited UZDoom compilation checks green.
-
-Exit gate: the graybox launches, completes without progression blockers, shows the classic Doom intermission, and records no MAPINFO or ZScript errors.
-
-## Phase 2 — Story Systems (`v0.2.0`)
+## Active — Phase 2: Story Systems (`v0.2.0`)
 
 Add objectives, subtitles, environmental sequences, reusable event IDs, and save/load-safe story handling within individual Doom maps.
 
@@ -32,7 +23,7 @@ Add reusable systems, campaign-state inspection, automated packaging, provenance
 
 ## Phase 6 — Standalone Product (`v0.9.0`)
 
-Complete SOL identity, first-run configuration, installers, AppImage packaging, diagnostics, and branding audit.
+Complete SOL identity, first-run configuration, installers, AppImage packaging, diagnostics, branding audit, and binary-level embedding of the locked SOL runtime/content stack so direct executable launch cannot bypass product defaults.
 
 ## Phase 7 — Release (`v1.0.0`)
 

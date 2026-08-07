@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "release": "0.1.0",
+  "description": "Mandatory SOL presentation and gameplay stack in load order.",
+  "mods": [
+    {
+      "id": "pssfx",
+      "source": "PSSFX.zip",
+      "mount": "PSSFX.zip",
+      "prepare": "copy",
+      "distribution": "user-supplied"
+    },
+    {
+      "id": "flashlight-plus-plus",
+      "source": "flashlight_plus_plus_v9_1.7z",
+      "mount": "flashlight_plus_plus_v9_1.pk3",
+      "prepare": "repack_zip",
+      "distribution": "user-supplied"
+    },
+    {
+      "id": "final-custom-doom",
+      "source": "FinalCustomDoom-v1.0.0-beta.pk3",
+      "mount": "FinalCustomDoom-v1.0.0-beta.pk3",
+      "prepare": "copy",
+      "distribution": "user-supplied"
+    },
+    {
+      "id": "angled-doom-lite",
+      "source": "jdra-Angled-Doom-Lite-1.2.1.pk3",
+      "mount": "jdra-Angled-Doom-Lite-1.2.1.pk3",
+      "prepare": "copy",
+      "distribution": "user-supplied"
+    },
+    {
+      "id": "troocullers",
+      "source": "TrooCullers2.5.pk3",
+      "mount": "TrooCullers2.5.pk3",
+      "prepare": "copy",
+      "distribution": "user-supplied"
+    },
+    {
+      "id": "tilt-plus-plus",
+      "source": "TiltPlusPlus.pk3",
+      "mount": "TiltPlusPlus.pk3",
+      "prepare": "copy",
+      "distribution": "user-supplied"
+    },
+    {
+      "id": "universal-weapon-sway",
+      "source": "Universal-Weapon-Sway-master.zip",
+      "mount": "Universal-Weapon-Sway-master.zip",
+      "prepare": "copy",
+      "distribution": "user-supplied"
+    },
+    {
+      "id": "nashgore-next",
+      "source": "nashgore_next.zip",
+      "mount": "nashgore_next.zip",
+      "prepare": "copy",
+      "distribution": "user-supplied"
+    }
+  ]
+}
