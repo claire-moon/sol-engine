@@ -8,6 +8,7 @@ if [[ $# -gt 0 ]]; then
 fi
 
 package=$(bash "$root/tools/sol-package.sh")
+bash "$root/tools/sol-mod-stack.sh" --check >/dev/null
 mapfile -d '' -t mod_files < <(bash "$root/tools/sol-mod-stack.sh" --print0)
 
 if [[ -n ${SOL_ENGINE:-} ]]; then
