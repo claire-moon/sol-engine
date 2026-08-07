@@ -1,0 +1,9 @@
+# SOL v0.1.0 fixed mod stack. Load order is significant.
+PSSFX.zip
+flashlight_plus_plus_v9_1.7z
+FinalCustomDoom-v1.0.0-beta.pk3
+jdra-Angled-Doom-Lite-1.2.1.pk3
+TrooCullers2.5.pk3
+TiltPlusPlus.pk3
+Universal-Weapon-Sway-master.zip
+nashgore_next.zip
