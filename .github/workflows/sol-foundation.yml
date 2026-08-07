@@ -6,6 +6,7 @@ on:
     paths:
       - 'sol/**'
       - 'tools/sol-*.sh'
+      - 'tests/**'
       - 'docs/sol/**'
       - 'branding/sol/**'
       - 'branding/misc/appicon*'
@@ -16,6 +17,7 @@ on:
     paths:
       - 'sol/**'
       - 'tools/sol-*.sh'
+      - 'tests/**'
       - 'docs/sol/**'
       - 'branding/sol/**'
       - 'branding/misc/appicon*'
@@ -34,7 +36,9 @@ jobs:
       - name: Validate metadata and scripts
         run: |
           python3 -m json.tool sol/version.json >/dev/null
-          bash -n tools/sol-*.sh
+          bash -n tools/sol-*.sh tests/*.sh
+      - name: Validate fixed mod stack
+        run: bash tests/test-sol-mod-stack.sh
       - name: Validate classic episode progression
         run: |
           grep -F 'map E1M1 "Hangar: Arrival"' sol/game/MAPINFO
@@ -48,7 +52,7 @@ jobs:
         run: bash tools/sol-package.sh
       - name: Inspect package and branding
         run: |
-          archive=$(find build/sol -maxdepth 1 -name 'sol-v0.1.0-dev.pk3' -print -quit)
+          archive=$(find build/sol -maxdepth 1 -name 'sol-v0.1.0.pk3' -print -quit)
           test -n "$archive"
           unzip -t "$archive"
           unzip -Z1 "$archive" | grep -Fx ZSCRIPT
