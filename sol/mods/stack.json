@@ -49,7 +49,7 @@
       "id": "universal-weapon-sway",
       "source": "Universal-Weapon-Sway-master.zip",
       "mount": "Universal-Weapon-Sway-master.zip",
-      "prepare": "copy",
+      "prepare": "normalize_zip",
       "distribution": "user-supplied"
     },
     {
