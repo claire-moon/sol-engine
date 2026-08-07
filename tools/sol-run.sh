@@ -2,36 +2,16 @@
 set -euo pipefail
 
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-map_name=${1:-}
-if [[ $# -gt 0 ]]; then
-    shift
-fi
+editor_root=${SOL_EDITOR_ROOT:-"$root/../sol-editor"}
+editor_launcher="$editor_root/tools/sol-test.sh"
 
-package=$(bash "$root/tools/sol-package.sh")
-
-if [[ -n ${SOL_ENGINE:-} ]]; then
-    engine=$SOL_ENGINE
-elif [[ -x "$root/build/uzdoom" ]]; then
-    engine="$root/build/uzdoom"
-elif [[ -x "$root/build/Release/uzdoom" ]]; then
-    engine="$root/build/Release/uzdoom"
-elif command -v uzdoom >/dev/null 2>&1; then
-    engine=$(command -v uzdoom)
-else
-    printf 'SOL engine not found. Set SOL_ENGINE=/path/to/uzdoom.\n' >&2
+if [[ ! -x $editor_launcher ]]; then
+    printf 'Sibling SOL editor launcher not found: %s\n' "$editor_launcher" >&2
     exit 1
 fi
 
-args=(-file "$package")
-if [[ -n ${DOOM_IWAD:-} ]]; then
-    if [[ ! -f $DOOM_IWAD ]]; then
-        printf 'DOOM_IWAD does not exist: %s\n' "$DOOM_IWAD" >&2
-        exit 1
-    fi
-    args=(-iwad "$DOOM_IWAD" "${args[@]}")
-fi
-if [[ -n $map_name ]]; then
-    args+=(+map "$map_name")
-fi
-
-exec "$engine" "${args[@]}" "$@"
+# The editor-side launcher is the single source of truth for IWAD selection,
+# locked wadpack order, current engine runtime, and current map package.
+export SOL_ENGINE_ROOT="$root"
+export SOL_EDITOR_ROOT="$editor_root"
+exec "$editor_launcher" "$@"
