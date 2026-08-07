@@ -3,23 +3,13 @@
 ## Completed
 
 - `v0.0.1`: runtime package foundation, shared editor contract, launch scripts, and E1M1 design specification.
+- `v0.1.0`: E1M1 runtime contract, classic Doom statistics/world-map progression, corrected ZScript entry point, shared MC cockpit entry, fourteen-resource locked wadpack launch convergence, final runtime package naming, and release CI assertions.
 
-## Active — Phase 1: E1M1 Graybox (`v0.1.0`)
+The v0.1.0 source release does not redistribute third-party wadpack binaries.
+Local play remains blocked until the sibling editor verifies all fourteen required
+resources; HQ PSX music remains a local deployment input.
 
-- Run the editor-generated E1M1 PWAD beside the SOL runtime package.
-- Preserve classic Doom statistics and the Episode 1 world-map intermission.
-- Use the shared MC setup cockpit from either repository.
-- Route every engine/editor launch through the exact locked fourteen-resource wadpack.
-- Block launches when the local pack is missing or changed.
-- Keep third-party binaries outside public Git history pending license review.
-- Complete local Linux playthrough and save/load verification.
-- Keep inherited UZDoom compilation checks green.
-
-Exit gate: a clean sibling checkout can configure its IWAD and complete wadpack,
-build both applications, launch E1M1 through any supported entry point, complete
-the classic intermission, and record no ZScript, MAPINFO, or resource errors.
-
-## Phase 2 — Story Systems (`v0.2.0`)
+## Active — Phase 2: Story Systems (`v0.2.0`)
 
 Add objectives, subtitles, environmental sequences, reusable event IDs, and
 save/load-safe story handling. Begin converting tuned wadpack behavior into
