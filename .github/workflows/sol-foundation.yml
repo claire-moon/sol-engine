@@ -47,7 +47,7 @@ jobs:
               ("jdra-Angled-Doom-Lite-1.2.1.pk3", "jdra-Angled-Doom-Lite-1.2.1.pk3", "copy"),
               ("TrooCullers2.5.pk3", "TrooCullers2.5.pk3", "copy"),
               ("TiltPlusPlus.pk3", "TiltPlusPlus.pk3", "copy"),
-              ("Universal-Weapon-Sway-master.zip", "Universal-Weapon-Sway-master.zip", "copy"),
+              ("Universal-Weapon-Sway-master.zip", "Universal-Weapon-Sway-master.zip", "normalize_zip"),
               ("nashgore_next.zip", "nashgore_next.zip", "copy"),
           ]
           with open("sol/mods/stack.json", encoding="utf-8") as handle:
