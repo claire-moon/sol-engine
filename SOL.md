@@ -10,9 +10,10 @@ contract 1 runtime behavior.
 
 Story contract 1 adds stable typed IDs and `SolStoryState`, an undroppable
 inventory-backed state object for save-persistent events, objectives, subtitle
-history, radio history, and current-objective state. The foundation does not
-invent map narrative content; concrete IDs and text are authored by the sibling
-`sol-editor` manifest.
+history, radio history, and current-objective state. `SolBootstrap` guarantees
+that every active player owns exactly one state object on world load, player
+entry, and player spawn. The foundation does not invent map narrative content;
+concrete IDs and text are authored by the sibling `sol-editor` manifest.
 
 The canonical local runtime payload remains one file:
 
@@ -75,9 +76,15 @@ than gameplay dependencies.
 
 Story contract 1 reserves IDs 1–65535 within four independent namespaces:
 events, objectives, subtitles, and radio cues. `SolStoryState` stores the
-contract version plus recorded IDs using serializable member fields. Duplicate
+contract version plus recorded IDs using save-persistent member fields. Duplicate
 records are rejected by its API, completed objectives cannot be restarted, and
 completing the current objective clears it.
+
+`SolBootstrap` resolves the player pawn through the native event-handler hooks
+and checks for `SolStoryState` with `FindInventory` before using
+`GiveInventoryType`. This makes state creation deterministic for new players and
+for older saves that do not yet contain the v0.2.0 state object, while preserving
+an already-loaded state object instead of creating a duplicate.
 
 This cycle establishes state and compatibility boundaries only. Trigger actors,
 HUD presentation, subtitle timing, radio playback, and concrete E1M1 narrative
@@ -109,7 +116,7 @@ contained inside them stay with their content.
 
 Attribution is not a substitute for redistribution permission. Several
 components still require asset/license review, while HQ PlayStation music and
-sound effects remain local-only proprietary audio. The complete `sol.pk3` is
+sound effects remain local-only proprietary inputs. The complete `sol.pk3` is
 therefore a local-build development/runtime artifact and must not be published as
 a public binary release until the third-party audit is complete.
 

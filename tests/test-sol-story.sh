@@ -5,6 +5,7 @@ root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 entry="$root/sol/game/ZSCRIPT"
 ids="$root/sol/game/zscript/sol/story_ids.zs"
 state="$root/sol/game/zscript/sol/story_state.zs"
+bootstrap="$root/sol/game/zscript/sol/bootstrap.zs"
 
 grep -Fx '#include "zscript/sol/story_ids.zs"' "$entry" >/dev/null
 grep -Fx '#include "zscript/sol/story_state.zs"' "$entry" >/dev/null
@@ -17,3 +18,9 @@ grep -F 'Array<int> SeenSubtitles;' "$state" >/dev/null
 grep -F 'Array<int> HeardRadio;' "$state" >/dev/null
 grep -F 'int CurrentObjective;' "$state" >/dev/null
 ! grep -Eq '^[[:space:]]*transient[[:space:]]+(int|Array<int>)[[:space:]]+(ContractVersion|CurrentObjective|FiredEvents|CompletedObjectives|SeenSubtitles|HeardRadio)' "$state"
+grep -F 'void EnsureStoryState(int playerNumber)' "$bootstrap" >/dev/null
+grep -F 'pawn.FindInventory(storyType)' "$bootstrap" >/dev/null
+grep -F 'pawn.GiveInventoryType(storyType);' "$bootstrap" >/dev/null
+grep -F 'override void WorldLoaded(WorldEvent event)' "$bootstrap" >/dev/null
+grep -F 'override void PlayerEntered(PlayerEvent event)' "$bootstrap" >/dev/null
+grep -F 'override void PlayerSpawned(PlayerEvent event)' "$bootstrap" >/dev/null
