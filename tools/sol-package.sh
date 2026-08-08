@@ -7,7 +7,7 @@ bundler="$editor_root/tools/sol-bundle.sh"
 target="$root/build/sol/sol.pk3"
 runtime_packager="$root/tools/sol-runtime-package.sh"
 
-if [[ -x $bundler ]]; then
+if [[ -f $bundler ]]; then
     export SOL_ENGINE_ROOT="$root"
     export SOL_EDITOR_ROOT="$editor_root"
     if bundle=$(SOL_BUNDLE_NO_SETUP=1 bash "$bundler" 2>/dev/null); then
