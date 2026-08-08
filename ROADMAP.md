@@ -11,13 +11,15 @@ and TargetSpy v3.1.0 in positions 15–18.
 
 A complete local build now condenses those eighteen normalized resources, the
 SOL runtime, current E1M1 content, component hashes, and attribution into one
-physical `sol.pk3`. Engine and editor wrappers materialize the intact child
-archives from that bundle, so normal runtime use no longer depends on loose
-wadpack files after packaging.
+physical `sol.pk3`. Numbered root-level `.wad` carriers activate UZDoom's native
+embedded-resource loader, so the engine mounts the complete 01→20 stack from one
+`-file sol.pk3` argument. Local engine builds place the bundle beside UZDoom and
+install a self-contained `sol-engine` launcher that loads it by default.
 
 `THIRD_PARTY.md` records attribution/provenance, but the complete bundle remains
 a local development/test artifact until every third-party redistribution basis
-is documented. HQ PlayStation music and sound effects remain local-only inputs.
+and asset obligation is documented. HQ PlayStation music and sound effects
+remain local-only proprietary inputs.
 
 ## Active — Phase 2: Story Systems (`v0.2.0`)
 
@@ -43,9 +45,9 @@ provenance manifests, license auditing, and regression maps.
 ## Phase 6 — Standalone Product (`v0.9.0`)
 
 Complete SOL identity, custom launcher/menu, installers, diagnostics, and a
-redistribution-cleared embedded/replacement resource stack. Move bundle
-materialization into the standalone runtime when the final resource set and
-rights are stable.
+redistribution-cleared embedded/replacement resource stack. Move the current
+shell launcher/package contract into the final standalone executable/installer
+when the resource set and rights are stable.
 
 ## Phase 7 — Release (`v1.0.0`)
 
