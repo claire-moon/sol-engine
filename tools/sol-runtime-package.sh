@@ -13,7 +13,12 @@ for command in python3 zip; do
     fi
 done
 
-for required in ZSCRIPT MAPINFO zscript/sol/bootstrap.zs; do
+for required in \
+    ZSCRIPT \
+    MAPINFO \
+    zscript/sol/story_ids.zs \
+    zscript/sol/story_state.zs \
+    zscript/sol/bootstrap.zs; do
     if [[ ! -f "$source_dir/$required" ]]; then
         printf 'Missing SOL runtime file: %s\n' "$required" >&2
         exit 1

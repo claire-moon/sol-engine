@@ -27,6 +27,13 @@ Add objectives, subtitles, environmental sequences, reusable event IDs, and
 save/load-safe story handling. Begin converting tuned wadpack behavior into
 SOL-owned defaults.
 
+Foundation status:
+
+- story contract 1 defines stable typed ID namespaces in the 1–65535 range;
+- save-persistent `SolStoryState` tracks events, objectives, subtitles, and radio cues;
+- map-specific story text/IDs remain unassigned until authored in `sol-editor`;
+- bundle contract 1 and wadpack contract 2 remain unchanged.
+
 ## Phase 3 — Classic Episode Framework (`v0.3.0`)
 
 Iterate on level-complete screens, episode world map, secret exits, title

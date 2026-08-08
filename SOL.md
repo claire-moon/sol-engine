@@ -4,11 +4,17 @@
 
 ## Current release
 
-`v0.1.0` provides the E1M1 runtime contract, classic Doom episode progression,
-shared SOL branding, the corrected ZScript entry point, and wadpack contract 2
-with eighteen fixed third-party resources.
+`v0.2.0` begins Phase 2 story systems while preserving the v0.1.0 E1M1,
+classic Doom episode progression, branding, wadpack contract 2, and bundle
+contract 1 runtime behavior.
 
-The canonical local runtime payload is one file:
+Story contract 1 adds stable typed IDs and `SolStoryState`, an undroppable
+inventory-backed state object for save-persistent events, objectives, subtitle
+history, radio history, and current-objective state. The foundation does not
+invent map narrative content; concrete IDs and text are authored by the sibling
+`sol-editor` manifest.
+
+The canonical local runtime payload remains one file:
 
 ```text
 sol.pk3
@@ -31,8 +37,8 @@ order. The runtime therefore needs one resource argument:
 ## Local build and run
 
 The canonical bundler lives in the sibling `sol-editor` checkout because that
-repository owns the wadpack manifest, importer, map package, and complete
-attribution inventory.
+repository owns the wadpack manifest, importer, map package, story authoring
+manifest, and complete attribution inventory.
 
 ```bash
 cd ../sol-editor
@@ -59,18 +65,30 @@ From the source checkout:
 bash tools/sol-run.sh E1M1
 ```
 
-`sol-run.sh` now uses the same direct self-contained launcher rather than
-requiring the sibling editor at runtime.
+`sol-run.sh` uses the same direct self-contained launcher rather than requiring
+the sibling editor at runtime.
 
 Once `sol.pk3` exists, loose `vend/wadpack/runtime` files are build inputs rather
 than gameplay dependencies.
 
+## Story runtime contract
+
+Story contract 1 reserves IDs 1–65535 within four independent namespaces:
+events, objectives, subtitles, and radio cues. `SolStoryState` stores the
+contract version plus recorded IDs using serializable member fields. Duplicate
+records are rejected by its API, completed objectives cannot be restarted, and
+completing the current objective clears it.
+
+This cycle establishes state and compatibility boundaries only. Trigger actors,
+HUD presentation, subtitle timing, radio playback, and concrete E1M1 narrative
+content are subsequent Phase 2 work.
+
 ## Runtime component versus final package
 
-`tools/sol-runtime-package.sh` produces the small SOL-owned engine component:
+`tools/sol-runtime-package.sh` produces the SOL-owned engine component:
 
 ```text
-build/sol/sol-v0.1.0.pk3
+build/sol/sol-v0.2.0.pk3
 ```
 
 That component is entry 19 inside final `sol.pk3`. It exists separately so source

@@ -2,6 +2,6 @@ class SolBootstrap : EventHandler
 {
     override void WorldLoaded(WorldEvent event)
     {
-        Console.Printf("SOL v0.1.0 graybox runtime loaded");
+        Console.Printf("SOL v0.2.0 story foundation runtime loaded");
     }
 }

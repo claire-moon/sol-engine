@@ -1,3 +1,5 @@
 version "4.14"
 
+#include "zscript/sol/story_ids.zs"
+#include "zscript/sol/story_state.zs"
 #include "zscript/sol/bootstrap.zs"
