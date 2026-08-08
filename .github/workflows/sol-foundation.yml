@@ -46,8 +46,8 @@ jobs:
               version = json.load(f)
           assert version['version'] == '0.1.0'
           assert version['editor_contract'] == '0.1.0'
-          assert version['wadpack_contract'] == 1
-          assert version['wadpack_entries'] == 14
+          assert version['wadpack_contract'] == 2
+          assert version['wadpack_entries'] == 18
           assert version['map_contract'] == 'E1M1'
           PY
       - name: Validate ZScript entry point

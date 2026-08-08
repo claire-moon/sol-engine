@@ -3,11 +3,15 @@
 ## Completed
 
 - `v0.0.1`: runtime package foundation, shared editor contract, launch scripts, and E1M1 design specification.
-- `v0.1.0`: E1M1 runtime contract, classic Doom statistics/world-map progression, corrected ZScript entry point, shared MC cockpit entry, fourteen-resource locked wadpack launch convergence, final runtime package naming, and release CI assertions.
+- `v0.1.0`: E1M1 runtime contract, classic Doom statistics/world-map progression, corrected ZScript entry point, shared MC cockpit entry, eighteen-resource locked wadpack launch convergence under contract 2, final runtime package naming, and release CI assertions.
 
 The v0.1.0 source release does not redistribute third-party wadpack binaries.
-Local play remains blocked until the sibling editor verifies all fourteen required
+Local play remains blocked until the sibling editor verifies all eighteen required
 resources; HQ PSX music remains a local deployment input.
+
+The original fourteen-resource baseline remains positions 1–14. Wadpack contract
+2 appends Universal Ambience, CosmoAmbience Script edited, Ambient decorations,
+and TargetSpy v3.1.0 in positions 15–18.
 
 ## Active — Phase 2: Story Systems (`v0.2.0`)
 
