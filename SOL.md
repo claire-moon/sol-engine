@@ -6,7 +6,7 @@
 
 `v0.1.0` provides the E1M1 runtime contract, classic Doom episode progression,
 shared SOL branding, the corrected ZScript entry point, and a strict launch path
-through the sibling `sol-editor` v0.1.0 fourteen-resource wadpack contract.
+through the sibling `sol-editor` v0.1.0 eighteen-resource wadpack contract.
 
 ## First run
 
@@ -24,9 +24,13 @@ bash tools/sol-run.sh E1M1
 ```
 
 `sol-run.sh` delegates to the editor-side launch contract. This guarantees that
-engine launches and editor playtests use the same IWAD, exact fourteen-resource
+engine launches and editor playtests use the same IWAD, exact eighteen-resource
 wadpack order, current SOL runtime package, and current E1M1 package. It does not
 fall back to a generic system UZDoom executable.
+
+The original fourteen-resource baseline remains in positions 1–14. Wadpack
+contract 2 appends Universal Ambience, CosmoAmbience Script edited, Ambient
+decorations, and TargetSpy v3.1.0 as positions 15–18.
 
 The generated runtime package for this release is:
 
