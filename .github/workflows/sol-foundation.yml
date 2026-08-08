@@ -6,9 +6,11 @@ on:
     paths:
       - 'sol/**'
       - 'tools/sol-*.sh'
+      - 'tests/**'
       - 'docs/sol/**'
       - 'branding/sol/**'
       - 'branding/misc/appicon*'
+      - 'src/common/filesystem/**'
       - 'SOL.md'
       - 'ROADMAP.md'
       - 'THIRD_PARTY.md'
@@ -17,9 +19,11 @@ on:
     paths:
       - 'sol/**'
       - 'tools/sol-*.sh'
+      - 'tests/**'
       - 'docs/sol/**'
       - 'branding/sol/**'
       - 'branding/misc/appicon*'
+      - 'src/common/filesystem/**'
       - 'SOL.md'
       - 'ROADMAP.md'
       - 'THIRD_PARTY.md'
@@ -36,9 +40,9 @@ jobs:
       - name: Validate metadata and scripts
         run: |
           python3 -m json.tool sol/version.json >/dev/null
-          bash -n tools/sol-*.sh
-          grep -F 'tools/sol-cockpit.sh' tools/sol-cockpit.sh
-          grep -F 'tools/sol-test.sh' tools/sol-run.sh
+          bash -n tools/sol-*.sh tests/*.sh
+          grep -F 'tools/sol-launcher.sh' tools/sol-run.sh
+          grep -F 'sol.pk3' tools/sol-launcher.sh
           grep -F 'sol-runtime-package.sh' tools/sol-package.sh
           grep -F 'sol-bundle.sh' tools/sol-package.sh
           grep -F 'sol-bundle.sh' tools/sol-bundle.sh
@@ -59,6 +63,14 @@ jobs:
           PY
           test -s THIRD_PARTY.md
           grep -F 'not a relicensing mechanism' THIRD_PARTY.md
+      - name: Validate native embedded archive support
+        run: |
+          grep -F 'const char *c = strstr(FullName, ".wad")' src/common/filesystem/source/resourcefile.cpp
+          grep -F 'Entries[entry].Flags |= RESFF_EMBEDDED' src/common/filesystem/source/resourcefile.cpp
+          grep -F 'if (flags & RESFF_EMBEDDED)' src/common/filesystem/source/filesystem.cpp
+          grep -F 'AddFile(path.c_str(), &embedded, filter, Printf, optional)' src/common/filesystem/source/filesystem.cpp
+      - name: Test self-contained launcher
+        run: bash tests/test-sol-launcher.sh
       - name: Validate ZScript entry point
         run: |
           grep -Fx 'version "4.14"' sol/game/ZSCRIPT
