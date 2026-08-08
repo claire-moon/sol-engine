@@ -5,7 +5,7 @@ root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 editor_root=${SOL_EDITOR_ROOT:-"$root/../sol-editor"}
 bundler="$editor_root/tools/sol-bundle.sh"
 
-if [[ ! -x $bundler ]]; then
+if [[ ! -f $bundler ]]; then
     printf 'Sibling SOL editor bundler not found: %s\n' "$bundler" >&2
     exit 1
 fi
