@@ -1,4 +1,4 @@
-name: SOL graybox
+name: SOL story foundation
 
 on:
   push:
@@ -53,12 +53,13 @@ jobs:
           import json
           with open('sol/version.json', encoding='utf-8') as f:
               version = json.load(f)
-          assert version['version'] == '0.1.0'
-          assert version['editor_contract'] == '0.1.0'
+          assert version['version'] == '0.2.0'
+          assert version['editor_contract'] == '0.2.0'
           assert version['wadpack_contract'] == 2
           assert version['wadpack_entries'] == 18
           assert version['bundle_contract'] == 1
           assert version['bundle_name'] == 'sol.pk3'
+          assert version['story_contract'] == 1
           assert version['map_contract'] == 'E1M1'
           PY
           test -s THIRD_PARTY.md
@@ -71,9 +72,13 @@ jobs:
           grep -F 'AddFile(path.c_str(), &embedded, filter, Printf, optional)' src/common/filesystem/source/filesystem.cpp
       - name: Test self-contained launcher
         run: bash tests/test-sol-launcher.sh
+      - name: Validate story foundation
+        run: bash tests/test-sol-story.sh
       - name: Validate ZScript entry point
         run: |
           grep -Fx 'version "4.14"' sol/game/ZSCRIPT
+          grep -Fx '#include "zscript/sol/story_ids.zs"' sol/game/ZSCRIPT
+          grep -Fx '#include "zscript/sol/story_state.zs"' sol/game/ZSCRIPT
           grep -Fx '#include "zscript/sol/bootstrap.zs"' sol/game/ZSCRIPT
           ! grep -Eq '^[[:space:]]*include[[:space:]]' sol/game/ZSCRIPT
       - name: Validate classic episode progression
@@ -89,13 +94,15 @@ jobs:
         run: bash tools/sol-runtime-package.sh
       - name: Inspect runtime component and branding
         run: |
-          archive=$(find build/sol -maxdepth 1 -name 'sol-v0.1.0.pk3' -print -quit)
+          archive=$(find build/sol -maxdepth 1 -name 'sol-v0.2.0.pk3' -print -quit)
           test -n "$archive"
           unzip -t "$archive"
           unzip -Z1 "$archive" | grep -Fx ZSCRIPT
           unzip -Z1 "$archive" | grep -Fx MAPINFO
+          unzip -Z1 "$archive" | grep -Fx zscript/sol/story_ids.zs
+          unzip -Z1 "$archive" | grep -Fx zscript/sol/story_state.zs
           unzip -Z1 "$archive" | grep -Fx zscript/sol/bootstrap.zs
-          unzip -p "$archive" ZSCRIPT | grep -Fx '#include "zscript/sol/bootstrap.zs"'
+          unzip -p "$archive" ZSCRIPT | grep -Fx '#include "zscript/sol/story_state.zs"'
           test -s branding/sol/sol-icon-master.png
           test -s branding/misc/appicon.png
           test -s branding/misc/appicon.16.png
