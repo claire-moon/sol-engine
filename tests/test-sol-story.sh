@@ -6,6 +6,7 @@ entry="$root/sol/game/ZSCRIPT"
 ids="$root/sol/game/zscript/sol/story_ids.zs"
 state="$root/sol/game/zscript/sol/story_state.zs"
 bootstrap="$root/sol/game/zscript/sol/bootstrap.zs"
+level_travel="$root/src/g_level.cpp"
 
 grep -Fx '#include "zscript/sol/story_ids.zs"' "$entry" >/dev/null
 grep -Fx '#include "zscript/sol/story_state.zs"' "$entry" >/dev/null
@@ -24,3 +25,9 @@ grep -F 'pawn.GiveInventoryType(storyType);' "$bootstrap" >/dev/null
 grep -F 'override void WorldLoaded(WorldEvent event)' "$bootstrap" >/dev/null
 grep -F 'override void PlayerEntered(PlayerEvent event)' "$bootstrap" >/dev/null
 grep -F 'override void PlayerSpawned(PlayerEvent event)' "$bootstrap" >/dev/null
+# UZDoom moves the live player pawn and recursively moves its inventory actors
+# through the travelling-thinker list. SolStoryState therefore crosses ordinary
+# level transitions as the same object, preserving its custom member arrays.
+grep -F 'AddToTravellingList(Players[i]->mo);' "$level_travel" >/dev/null
+grep -F 'for (AActor* inv = mo->Inventory; inv != nullptr; inv = inv->Inventory)' "$level_travel" >/dev/null
+grep -F 'AddToTravellingList(inv);' "$level_travel" >/dev/null
