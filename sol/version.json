@@ -7,5 +7,7 @@
   "map_contract": "E1M1",
   "editor_contract": "0.1.0",
   "wadpack_contract": 2,
-  "wadpack_entries": 18
+  "wadpack_entries": 18,
+  "bundle_contract": 1,
+  "bundle_name": "sol.pk3"
 }

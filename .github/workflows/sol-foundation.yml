@@ -6,21 +6,27 @@ on:
     paths:
       - 'sol/**'
       - 'tools/sol-*.sh'
+      - 'tests/**'
       - 'docs/sol/**'
       - 'branding/sol/**'
       - 'branding/misc/appicon*'
+      - 'src/common/filesystem/**'
       - 'SOL.md'
       - 'ROADMAP.md'
+      - 'THIRD_PARTY.md'
       - '.github/workflows/sol-foundation.yml'
   pull_request:
     paths:
       - 'sol/**'
       - 'tools/sol-*.sh'
+      - 'tests/**'
       - 'docs/sol/**'
       - 'branding/sol/**'
       - 'branding/misc/appicon*'
+      - 'src/common/filesystem/**'
       - 'SOL.md'
       - 'ROADMAP.md'
+      - 'THIRD_PARTY.md'
       - '.github/workflows/sol-foundation.yml'
 
 permissions:
@@ -34,9 +40,12 @@ jobs:
       - name: Validate metadata and scripts
         run: |
           python3 -m json.tool sol/version.json >/dev/null
-          bash -n tools/sol-*.sh
-          grep -F 'tools/sol-cockpit.sh' tools/sol-cockpit.sh
-          grep -F 'tools/sol-test.sh' tools/sol-run.sh
+          bash -n tools/sol-*.sh tests/*.sh
+          grep -F 'tools/sol-launcher.sh' tools/sol-run.sh
+          grep -F 'sol.pk3' tools/sol-launcher.sh
+          grep -F 'sol-runtime-package.sh' tools/sol-package.sh
+          grep -F 'sol-bundle.sh' tools/sol-package.sh
+          grep -F 'sol-bundle.sh' tools/sol-bundle.sh
           ! grep -F 'command -v uzdoom' tools/sol-run.sh
       - name: Validate release contract
         run: |
@@ -48,8 +57,20 @@ jobs:
           assert version['editor_contract'] == '0.1.0'
           assert version['wadpack_contract'] == 2
           assert version['wadpack_entries'] == 18
+          assert version['bundle_contract'] == 1
+          assert version['bundle_name'] == 'sol.pk3'
           assert version['map_contract'] == 'E1M1'
           PY
+          test -s THIRD_PARTY.md
+          grep -F 'not a relicensing mechanism' THIRD_PARTY.md
+      - name: Validate native embedded archive support
+        run: |
+          grep -F 'const char *c = strstr(FullName, ".wad")' src/common/filesystem/source/resourcefile.cpp
+          grep -F 'Entries[entry].Flags |= RESFF_EMBEDDED' src/common/filesystem/source/resourcefile.cpp
+          grep -F 'if (flags & RESFF_EMBEDDED)' src/common/filesystem/source/filesystem.cpp
+          grep -F 'AddFile(path.c_str(), &embedded, filter, Printf, optional)' src/common/filesystem/source/filesystem.cpp
+      - name: Test self-contained launcher
+        run: bash tests/test-sol-launcher.sh
       - name: Validate ZScript entry point
         run: |
           grep -Fx 'version "4.14"' sol/game/ZSCRIPT
@@ -64,9 +85,9 @@ jobs:
           grep -Eq '^[[:space:]]*secretnext[[:space:]]*=[[:space:]]*"E1M9"$' sol/game/MAPINFO
           grep -Eq '^[[:space:]]*cluster[[:space:]]*=[[:space:]]*1$' sol/game/MAPINFO
           ! grep -Eiq '^[[:space:]]*nointermission([[:space:]]|$)' sol/game/MAPINFO
-      - name: Package SOL runtime
-        run: bash tools/sol-package.sh
-      - name: Inspect package and branding
+      - name: Package SOL-owned runtime component
+        run: bash tools/sol-runtime-package.sh
+      - name: Inspect runtime component and branding
         run: |
           archive=$(find build/sol -maxdepth 1 -name 'sol-v0.1.0.pk3' -print -quit)
           test -n "$archive"
