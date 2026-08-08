@@ -14,15 +14,25 @@ The canonical local runtime payload is one file:
 sol.pk3
 ```
 
-Bundle contract 1 contains the eighteen normalized third-party WAD/PK3 files as
-intact embedded archives followed by the SOL runtime and current E1M1 content
-components. It also contains `SOLPACK.json` and `THIRD_PARTY.md`.
+Bundle contract 1 contains the eighteen normalized third-party WAD/PK3 files,
+the SOL runtime, current E1M1 content, `SOLPACK.json`, and `THIRD_PARTY.md`.
+Every archive remains byte-for-byte intact inside a numbered root-level `.wad`
+carrier.
+
+The carrier suffix deliberately activates UZDoom's existing native embedded-
+resource handling. UZDoom recognizes those members as embedded archives, opens
+them by actual file contents, and recursively mounts carriers 01→20 in lexical
+order. The runtime therefore needs one resource argument:
+
+```text
+-file sol.pk3
+```
 
 ## Local build and run
 
 The canonical bundler lives in the sibling `sol-editor` checkout because that
-repository owns the wadpack manifest, importer, map package, and attribution
-inventory.
+repository owns the wadpack manifest, importer, map package, and complete
+attribution inventory.
 
 ```bash
 cd ../sol-editor
@@ -31,24 +41,29 @@ bash tools/sol-package.sh
 ```
 
 The bundle builder copies the same `sol.pk3` to `sol-engine/build/sol` and the
-configured engine build directory. From `sol-engine` the equivalent entry point
-is:
+configured engine build directory. Local engine builds also install an executable
+`sol-engine` launcher beside UZDoom.
+
+From a packaged build directory:
 
 ```bash
-bash tools/sol-bundle.sh
+./sol-engine E1M1
 ```
 
-Run E1M1 through the normal wrapper:
+The launcher requires/loads adjacent `sol.pk3`. If `DOOM_IWAD` is set it is used;
+otherwise UZDoom keeps its normal IWAD discovery/picker.
+
+From the source checkout:
 
 ```bash
 bash tools/sol-run.sh E1M1
 ```
 
-`sol-run.sh` delegates to the editor-side SOL launcher. The launcher verifies
-`sol.pk3`, materializes its child archives into a cache keyed by the complete
-bundle hash, then mounts all components in locked order. The loose
-`vend/wadpack/runtime` files are therefore build inputs rather than a normal
-runtime dependency after `sol.pk3` has been generated.
+`sol-run.sh` now uses the same direct self-contained launcher rather than
+requiring the sibling editor at runtime.
+
+Once `sol.pk3` exists, loose `vend/wadpack/runtime` files are build inputs rather
+than gameplay dependencies.
 
 ## Runtime component versus final package
 
@@ -58,27 +73,27 @@ runtime dependency after `sol.pk3` has been generated.
 build/sol/sol-v0.1.0.pk3
 ```
 
-That component is entry 19 inside the final `sol.pk3`. It exists separately so
-source CI and first-run setup can validate SOL-owned data without possessing the
-third-party wadpack.
+That component is entry 19 inside final `sol.pk3`. It exists separately so source
+CI and first-run setup can validate SOL-owned data without possessing third-party
+resources.
 
 `tools/sol-package.sh` is the final package entry point. When the sibling editor
 and complete wadpack are available it produces/returns `sol.pk3`; during
-first-run setup it can temporarily fall back to the SOL-owned component until
-the wadpack has been imported.
+first-run setup it can temporarily fall back to the SOL-owned component until the
+wadpack has been imported.
 
 ## Attribution and redistribution
 
 `THIRD_PARTY.md` is committed in both repositories, and the editor's complete
-copy is embedded into every `sol.pk3`. Each upstream WAD/PK3 remains intact so
-notices contained inside the original package remain with it.
+copy is embedded into every `sol.pk3`. The manifest records exact source hashes
+and known upstream source pages. Upstream archives remain intact so notices
+contained inside them stay with their content.
 
 Attribution is not a substitute for redistribution permission. Several
-components remain `review-required`, while HQ PlayStation music and sound
-effects remain recorded as local-only proprietary audio. The complete
-`sol.pk3` is therefore currently a local-build development/runtime artifact and
-must not be published as a public binary release until the third-party audit is
-complete.
+components still require asset/license review, while HQ PlayStation music and
+sound effects remain local-only proprietary audio. The complete `sol.pk3` is
+therefore a local-build development/runtime artifact and must not be published as
+a public binary release until the third-party audit is complete.
 
 SOL keeps Doom's normal level-complete statistics and Episode 1 “you are here”
 intermission map. Seamless level transfer is not part of the current design.
