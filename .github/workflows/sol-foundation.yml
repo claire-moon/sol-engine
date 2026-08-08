@@ -11,6 +11,7 @@ on:
       - 'branding/misc/appicon*'
       - 'SOL.md'
       - 'ROADMAP.md'
+      - 'THIRD_PARTY.md'
       - '.github/workflows/sol-foundation.yml'
   pull_request:
     paths:
@@ -21,6 +22,7 @@ on:
       - 'branding/misc/appicon*'
       - 'SOL.md'
       - 'ROADMAP.md'
+      - 'THIRD_PARTY.md'
       - '.github/workflows/sol-foundation.yml'
 
 permissions:
@@ -37,6 +39,9 @@ jobs:
           bash -n tools/sol-*.sh
           grep -F 'tools/sol-cockpit.sh' tools/sol-cockpit.sh
           grep -F 'tools/sol-test.sh' tools/sol-run.sh
+          grep -F 'sol-runtime-package.sh' tools/sol-package.sh
+          grep -F 'sol-bundle.sh' tools/sol-package.sh
+          grep -F 'sol-bundle.sh' tools/sol-bundle.sh
           ! grep -F 'command -v uzdoom' tools/sol-run.sh
       - name: Validate release contract
         run: |
@@ -48,8 +53,12 @@ jobs:
           assert version['editor_contract'] == '0.1.0'
           assert version['wadpack_contract'] == 2
           assert version['wadpack_entries'] == 18
+          assert version['bundle_contract'] == 1
+          assert version['bundle_name'] == 'sol.pk3'
           assert version['map_contract'] == 'E1M1'
           PY
+          test -s THIRD_PARTY.md
+          grep -F 'not a relicensing mechanism' THIRD_PARTY.md
       - name: Validate ZScript entry point
         run: |
           grep -Fx 'version "4.14"' sol/game/ZSCRIPT
@@ -64,9 +73,9 @@ jobs:
           grep -Eq '^[[:space:]]*secretnext[[:space:]]*=[[:space:]]*"E1M9"$' sol/game/MAPINFO
           grep -Eq '^[[:space:]]*cluster[[:space:]]*=[[:space:]]*1$' sol/game/MAPINFO
           ! grep -Eiq '^[[:space:]]*nointermission([[:space:]]|$)' sol/game/MAPINFO
-      - name: Package SOL runtime
-        run: bash tools/sol-package.sh
-      - name: Inspect package and branding
+      - name: Package SOL-owned runtime component
+        run: bash tools/sol-runtime-package.sh
+      - name: Inspect runtime component and branding
         run: |
           archive=$(find build/sol -maxdepth 1 -name 'sol-v0.1.0.pk3' -print -quit)
           test -n "$archive"
