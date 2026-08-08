@@ -9,32 +9,44 @@ and TargetSpy v3.1.0 in positions 15–18.
 
 ## Final runtime package
 
-The normal local runtime is a single physical file:
+The normal local runtime is one physical file:
 
 ```text
 sol.pk3
 ```
 
-Bundle contract 1 stores the eighteen normalized third-party WAD/PK3 resources
-as intact child archives followed by:
+Bundle contract 1 stores all twenty ordered components as root-level numbered
+`.wad` carriers:
 
 ```text
-19-sol-runtime.pk3
-20-sol-content.pk3
+01–18  third-party WAD/PK3 archives
+19     SOL runtime archive
+20     SOL E1M1 content archive
 ```
 
-`SOLPACK.json` records component order and SHA-256 values, and
-`THIRD_PARTY.md` is embedded for attribution/provenance.
+The `.wad` suffix is a native carrier convention only. The bytes remain the
+original normalized WAD/PK3 archives. UZDoom's existing filesystem recognizes
+root-level `.wad` members as embedded resources, opens each by actual content,
+and recursively mounts them in lexical 01→20 order.
 
-The resources are not flattened into one ZIP namespace because separate Doom
-mods can contain identically named root resources. Keeping the children intact
-preserves their normal ordered-load semantics. The SOL launcher materializes
-these children from `sol.pk3` into a hash-keyed cache immediately before engine
-startup.
+Gameplay therefore uses exactly:
+
+```text
+-file sol.pk3
+```
+
+No gameplay extraction layer or eighteen loose `-file` arguments are needed.
+`SOLPACK.json` records carrier names, original normalized names, component order,
+distribution status, and SHA-256 values. `THIRD_PARTY.md` is embedded for
+attribution/provenance.
+
+Ultimate Doom Builder still needs direct resource paths for authoring, so the
+editor may materialize entries 1–18 from the bundle into a hash-keyed cache.
+Editor playtests return to the one-file native `sol.pk3` path.
 
 Once `sol.pk3` exists and verifies against the current contract, loose files
-under sibling `vend/wadpack/runtime` are no longer required for normal runtime
-or editor use. They remain build inputs when regenerating the bundle.
+under sibling `vend/wadpack/runtime` are build inputs rather than gameplay
+runtime dependencies.
 
 ## Package entry points
 
@@ -43,20 +55,30 @@ From `sol-engine`:
 ```bash
 bash tools/sol-bundle.sh
 bash tools/sol-package.sh
+bash tools/sol-run.sh E1M1
 ```
 
-Both converge on the sibling editor bundler when the complete local wadpack is
-available. `tools/sol-runtime-package.sh` remains the source-only engine
-component builder used by CI and first-run bootstrap.
+Local engine builds install `sol-engine` beside UZDoom and copy `sol.pk3` beside
+it. The packaged launcher loads adjacent `sol.pk3` automatically, uses
+`DOOM_IWAD` when supplied, and otherwise leaves UZDoom's normal IWAD picker
+intact.
+
+`tools/sol-runtime-package.sh` remains the source-only SOL engine component
+builder used by CI and first-run bootstrap.
 
 ## Attribution and licensing
 
 Third-party accreditation/provenance is recorded in `THIRD_PARTY.md`; the full
 editor copy is embedded in `sol.pk3`, and upstream archives are preserved intact
-with any notices they already contain.
+with notices they already contain.
 
-This does not grant redistribution permission. Several entries remain
-`review-required`; HQ PlayStation music and sound effects remain recorded as
-local-only proprietary audio. The complete `sol.pk3` is therefore currently
-approved only as a local development/test build artifact, not as a public SOL
-binary release.
+Universal Ambience's published distribution lists its three ambience components
+and labels the package GPL, but it also credits externally sourced audio; the
+CosmoAmbience copy supplied to SOL is an edited variant. TargetSpy v3.1.0
+explicitly declares GPL-3.0-only and © 2026 Alexander Kromm. Those facts are
+recorded without treating them as blanket clearance for unrelated assets.
+
+Attribution does not grant redistribution permission. Several entries still
+require asset/license review; HQ PlayStation music and sound effects remain
+local-only proprietary audio. Complete `sol.pk3` is therefore a local
+development/test build artifact, not yet a public SOL binary release.
