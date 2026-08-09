@@ -1,0 +1,29 @@
+name: Apply SOL v0.4 native contract
+
+on:
+  push:
+    branches: ['sol/v0.4.0-bundle-authority']
+    paths:
+      - 'tools/sol-v04-apply.py'
+      - '.github/workflows/v04-apply.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: sol/v0.4.0-bundle-authority
+          fetch-depth: 0
+      - name: Apply v0.4 source changes
+        run: python3 tools/sol-v04-apply.py
+      - name: Commit generated source changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Finalize SOL Engine v0.4 native contracts'
+          git push origin HEAD:sol/v0.4.0-bundle-authority
