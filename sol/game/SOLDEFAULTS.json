@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "project": "SOL",
+  "contract": 1,
+  "categories": [
+    "renderer",
+    "mod",
+    "audio",
+    "hud",
+    "gameplay"
+  ],
+  "values": [
+    {
+      "category": "renderer",
+      "name": "vid_rendermode",
+      "value": "4"
+    },
+    {
+      "category": "renderer",
+      "name": "vid_renderer",
+      "value": "1"
+    },
+    {
+      "category": "renderer",
+      "name": "disableautoload",
+      "value": "true"
+    },
+    {
+      "category": "renderer",
+      "name": "autoloadbrightmaps",
+      "value": "false"
+    },
+    {
+      "category": "renderer",
+      "name": "autoloadlights",
+      "value": "false"
+    },
+    {
+      "category": "renderer",
+      "name": "autoloadwidescreen",
+      "value": "false"
+    },
+    {
+      "category": "audio",
+      "name": "snd_mastervolume",
+      "value": "1.0"
+    },
+    {
+      "category": "hud",
+      "name": "hud_althud",
+      "value": "false"
+    },
+    {
+      "category": "gameplay",
+      "name": "sv_cheats",
+      "value": "false"
+    }
+  ],
+  "excluded": [
+    "filesystem paths",
+    "recent-file history",
+    "input bindings",
+    "save data",
+    "player identity"
+  ]
+}
