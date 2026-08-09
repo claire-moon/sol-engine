@@ -67,7 +67,8 @@ construction, provenance, and the reproducible gameplay configuration.
 - Introduce bundle contract 2 with explicit `active`, `retired`, `reserved`,
   `runtime`, and `content` slot states.
 - Introduce wadpack contract 3: retire/unmount slot 11, preserve slots 12–18,
-  reserve/unmount slots 19–20, and place SOL runtime/content at 21–22.
+  assign PreciseCrosshair v1.5.0 to slot 19, reserve/unmount slot 20, and place
+  SOL runtime/content at 21–22.
 - Introduce `SOLDEFAULTS.json` contract 1 and import only approved renderer,
   mod, audio, HUD, and gameplay values from the development profile.
 - Add Reset to SOL Defaults. Never import personal paths, history, bindings, or
