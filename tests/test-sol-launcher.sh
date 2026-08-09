@@ -31,4 +31,21 @@ printf '%s\n' "$output" > "$tmp/no-iwad-args"
 ! grep -Fx -- '-file' "$tmp/no-iwad-args"
 ! grep -Fx '+map' "$tmp/no-iwad-args"
 
+# A stale v0.3 build must never shadow the current sol-local build.
+fixture="$tmp/layout"
+mkdir -p "$fixture/tools" "$fixture/build/sol-local" "$fixture/build/sol-v030"
+install -m 0755 "$root/tools/sol-launcher.sh" "$fixture/tools/sol-launcher.sh"
+cat > "$fixture/build/sol-local/sol-engine" <<'CURRENT'
+#!/usr/bin/env bash
+printf 'CURRENT-V04\n'
+CURRENT
+cat > "$fixture/build/sol-v030/sol-engine" <<'LEGACY'
+#!/usr/bin/env bash
+printf 'STALE-V03\n'
+LEGACY
+chmod +x "$fixture/build/sol-local/sol-engine" "$fixture/build/sol-v030/sol-engine"
+
+output=$(env -u SOL_ENGINE -u DOOM_IWAD bash "$fixture/tools/sol-launcher.sh")
+test "$output" = 'CURRENT-V04'
+
 printf 'native SOL engine development launcher tests passed\n'
