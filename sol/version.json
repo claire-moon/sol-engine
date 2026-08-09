@@ -1,15 +1,19 @@
 {
   "project": "SOL Engine",
-  "version": "0.3.0",
-  "bundle_version": "0.3.0",
-  "release": "engine-identity",
+  "version": "0.4.0",
+  "bundle_version": "0.4.0",
+  "release": "bundle-authority",
   "upstream": "UZDoom",
   "engine_compatibility": "4.14",
   "map_contract": "E1M1",
   "editor_contract": "0.2.0",
-  "wadpack_contract": 2,
+  "wadpack_contract": 3,
   "wadpack_entries": 18,
-  "bundle_contract": 1,
+  "wadpack_slots": 20,
+  "bundle_contract": 2,
   "bundle_name": "sol.pk3",
-  "story_contract": 1
+  "runtime_slot": 21,
+  "content_slot": 22,
+  "story_contract": 1,
+  "soldefaults_contract": 1
 }
