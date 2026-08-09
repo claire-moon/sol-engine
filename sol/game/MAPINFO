@@ -3,7 +3,7 @@ GameInfo
     AddEventHandlers = "SolBootstrap"
 }
 
-map E1M1 "Hangar: Arrival"
+map E1M1 "TESTMAP"
 {
     levelnum = 1
     titlepatch = "WILV00"
