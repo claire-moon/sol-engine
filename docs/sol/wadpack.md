@@ -1,4 +1,4 @@
-# SOL locked wadpack
+# SOL! locked wadpack
 
 `sol-engine` owns the canonical resource manifest, importer/locker, final bundle
 builder, slot contract, and attribution inventory beginning with v0.4.0.
@@ -10,9 +10,9 @@ The logical table contains twenty wadpack slots:
 
 | Slot | State | Component |
 |---:|---|---|
-| 1–10 | active | existing locked SOL resources |
+| 1–10 | active | existing locked SOL! resources |
 | 11 | retired | HQ PSX music; never mounted |
-| 12–18 | active | existing locked SOL resources |
+| 12–18 | active | existing locked SOL! resources |
 | 19 | active | PreciseCrosshair v1.5.0 |
 | 20 | reserved | intentionally empty; never mounted |
 
@@ -43,8 +43,8 @@ The physical carrier order is therefore:
 ```text
 01–10  active wadpack resources
 12–19  active wadpack resources
-21     SOL runtime archive
-22     SOL content archive
+21     SOL! runtime archive
+22     SOL! content archive
 ```
 
 There is no `11-*` or `20-*` archive. Slot 11 and slot 20 exist in metadata only.
@@ -69,7 +69,7 @@ python3 tools/sol-bundle.py verify \
     --version-file sol/version.json
 ```
 
-The final builder obtains the SOL-owned runtime component from this repository
+The final builder obtains the SOL!-owned runtime component from this repository
 and the current content component from the sibling editor checkout. It verifies
 the complete bundle, then copies the identical `sol.pk3` into configured
 engine/editor development package locations.
@@ -85,7 +85,7 @@ compatibility entry points therefore delegate wadpack/bundle operations to the
 engine-owned tools, and materialization may extract active carriers into a
 hash-keyed authoring cache. Retired/reserved slots are never materialized.
 
-The editor still builds the current SOL content component and appends temporary
+The editor still builds the current SOL! content component and appends temporary
 playtest map data after the canonical bundle so the map under edit retains
 playtest precedence.
 
