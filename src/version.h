@@ -118,3 +118,16 @@
 #elif defined(__HAIKU__)
 #define GAME_DIR "config/settings/" GAMENAME
 #endif
+
+#define DEFAULT_DISCORD_APP_ID "1428620310302691349"
+
+const int SAVEPICWIDTH = 216;
+const int SAVEPICHEIGHT = 162;
+const int VID_MIN_WIDTH = 320;
+const int VID_MIN_HEIGHT = 200;
+
+const char *GetVersionString();
+const char *GetGitHash();
+const char *GetGitTime();
+const char *GetGitTag();
+int GetGitDistance();
