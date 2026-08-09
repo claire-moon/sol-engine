@@ -20,8 +20,7 @@ find_engine() {
         "$launcher_dir/../build/sol-local/sol-engine" \
         "$launcher_dir/../build/sol-local/Release/sol-engine" \
         "$launcher_dir/../build/sol-engine" \
-        "$launcher_dir/../build/Release/sol-engine" \
-        "$launcher_dir/../build/sol-v030/sol-engine"; do
+        "$launcher_dir/../build/Release/sol-engine"; do
         if [[ -n $candidate && -x $candidate ]]; then
             realpath "$candidate"
             return 0
@@ -31,7 +30,7 @@ find_engine() {
 }
 
 engine=$(find_engine) || {
-    printf 'SOL engine executable not found.\n' >&2
+    printf 'SOL Engine v0.4 executable not found. Build the current checkout before launching.\n' >&2
     exit 1
 }
 
