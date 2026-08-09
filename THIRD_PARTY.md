@@ -1,11 +1,11 @@
-# SOL third-party resources
+# SOL! third-party resources
 
-SOL's canonical third-party resource inventory is moving into this repository
-under wadpack contract 3. The generated `sol.pk3` preserves every normalized
+SOL!'s canonical third-party resource inventory lives in this repository under
+wadpack contract 3. The generated `sol.pk3` preserves every normalized
 third-party WAD/PK3 byte-for-byte inside a native embedded-resource carrier and
 includes this `THIRD_PARTY.md` inside the bundle.
 
-This inventory is attribution/provenance, not a relicensing mechanism. The SOL
+This inventory is attribution/provenance, not a relicensing mechanism. The SOL!
 project license does not relicense third-party content. Public redistribution is
 not cleared until every resource and bundled asset has a documented grant and
 all applicable notice/source obligations are satisfied.
@@ -23,7 +23,7 @@ all applicable notice/source obligations are satisfied.
 | 9 | Final Custom Doom 1.0.0 beta | GPL-3.0-only, © 2025 Alexander Kromm |
 | 10 | Vanilla Essence 4.3 | review-required |
 | 11 | HQ PSX music | retired/unmounted by wadpack contract 3 |
-| 12 | PlayStation sound effects | local-only development placeholder pending original SOL replacement |
+| 12 | PlayStation sound effects | local-only development placeholder pending original SOL! replacement |
 | 13 | Flashlight++ 9.1 | review-required |
 | 14 | WW Alpha HUD | review-required |
 | 15 | Universal Ambience | upstream distribution lists GPL; third-party audio assets require review |
@@ -45,7 +45,7 @@ all applicable notice/source obligations are satisfied.
 The Universal Ambience page credits McTed, Heydoomer, Agent Ash, Boondorl,
 Dr_Cosmobyte, and multiple external sound sources. TargetSpy declares
 GPL-3.0-only and © 2026 Alexander Kromm. PreciseCrosshair v1.5.0 was supplied
-for the SOL local wadpack with SHA-256
+for the SOL! local wadpack with SHA-256
 `c2c958b04e53013e4ba49707d74529178800f9d754dc4c677201e5754dc9ef94`.
 Its package identifies the main project as GPL-3.0-only and separately preserves
 the bundled libeye notice/license plus REUSE metadata. Those notices remain
@@ -54,10 +54,10 @@ part of the unmodified upstream archive and must be retained.
 ## Native bundle behavior
 
 The physical `sol.pk3` uses numbered root-level `.wad` carrier names. Those
-suffixes trigger the inherited embedded-resource handling; the contained bytes
+suffixes trigger inherited embedded-resource handling; the contained bytes
 remain the original normalized WAD/PK3 archives and are opened by file content.
-SOL Engine v0.3.0 mounts adjacent `sol.pk3` natively. v0.4.0 bundle contract 2
-keeps numeric slot identity explicit so retired/reserved positions can remain
+SOL! Engine v0.4.0 mounts adjacent `sol.pk3` natively and bundle contract 2 keeps
+numeric slot identity explicit so retired/reserved positions can remain
 unmounted without renumbering later resources.
 
 ## Distribution boundary
