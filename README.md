@@ -1,96 +1,59 @@
-<div align="center">
+# SOL Engine
 
-[ <img src="branding/misc/logo-bg.svg" alt="UZDoom Icon" style="height: 8em; width: 100%" /> ][repo]
+[![Build](https://github.com/claire-moon/sol-engine/actions/workflows/continuous_integration.yml/badge.svg)](https://github.com/claire-moon/sol-engine/actions/workflows/continuous_integration.yml)
+[![SOL validation](https://github.com/claire-moon/sol-engine/actions/workflows/sol-foundation.yml/badge.svg)](https://github.com/claire-moon/sol-engine/actions/workflows/sol-foundation.yml)
 
-</div>
+SOL Engine is the standalone runtime for SOL, a classic Doom-inspired game and
+toolchain. It is derived from UZDoom and currently requires a legally obtained
+registered Doom or Ultimate Doom IWAD.
 
-## Welcome to UZDoom!
+The player launches the native `sol-engine` executable. It discovers the IWAD,
+validates and mounts the mandatory local `sol.pk3`, and then accepts optional
+development files with later override precedence. No wrapper-supplied
+`-file sol.pk3` argument is part of the runtime contract.
 
-[![Continuous Integration][badge_git]][status_git]
-[![Engine Translation status][badge_trans]][status_trans]
-[![Game Translation status][badge_trans_games]][status_trans_games]
+The complete `sol.pk3` contains third-party development resources whose public
+redistribution has not yet been cleared. It is therefore built locally and is
+not included in public engine-only artifacts. See [SOL.md](SOL.md) for the
+current build, launch, integrity, and licensing contracts, and
+[ROADMAP.md](ROADMAP.md) for the engine-first development phases.
 
-**UZDoom** is a modern, feature-rich source port for the classic game **DOOM**.
+## Repository roles
 
-A continuation of [ZDoom][zdoom] and [GZDoom][gzdoom], UZDoom enhances the original DOOM engine, providing advanced features like:
+- `sol-engine`: native runtime, gameplay systems, renderer and platform work.
+- `sol-editor`: SOL's Ultimate Doom Builder-derived authoring environment and,
+  until bundle authority moves in v0.4.0, the local resource importer/builder.
 
-* High-Resolution Graphics
-* Dynamic lighting
-* 3D Floors
-* Extensive Modding Support
-* Support for modern OpenGL and Vulkan renderers
+Story and production level authoring are deliberately parked until the runtime
+and editor integration phases are complete.
 
-UZDoom is **free and open-source software**, built and maintained by a dedicated community of developers and enthusiasts.
+## Development build
 
-## 🙏 Acknowledgments
+Configure and build with CMake, then build the local bundle through the sibling
+editor checkout:
 
-UZDoom would not be possible without the foundational work of many people. We extend our immense gratitude to:
+```bash
+cmake -S . -B build/sol-local -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake --build build/sol-local --parallel
+bash tools/sol-bundle.sh
+```
 
-* **id Software** for creating the original DOOM and releasing its source code.
-* **Marisa Heit** for her foundational work on ZDoom, and **Christoph Oelckers** for his work on GZDoom.
-* The countless modders, mappers, and artists in the DOOM community who continue to create amazing content.
-* All the contributors who have submitted code, reported bugs, and helped improve the project over the years.
+Place `sol.pk3` beside `build/sol-local/sol-engine` and launch the executable
+directly. `DOOM_IWAD=/absolute/path/to/DOOM.WAD bash tools/sol-run.sh` remains a
+development convenience only.
 
-The **UZDoom Icon** was designed by **Carlos "Cardboard Marty" Sanchez**, copyrighted to the UZDoom Team, and licensed under **Creative Commons BY-SA 4.0**.
+## Upstream and licensing
 
-See the [CONTRIBUTORS](CONTRIBUTORS) file for a full list of code contributors.
+SOL Engine retains the copyright notices, source history, and license files of
+the projects it derives from. Its engine lineage includes Doom, ZDoom, GZDoom,
+and UZDoom. New SOL engine code is GPL-3.0-or-later unless a file records a
+compatible inherited license. Third-party game resources keep their own terms
+and are not relicensed by this repository.
 
-## 📄 Legal
+Selected upstream fixes enter through the reviewed process documented in
+[docs/sol/upstream-intake.md](docs/sol/upstream-intake.md). See
+[CONTRIBUTORS](CONTRIBUTORS), [LICENSE](LICENSE), and
+[THIRD_PARTY.md](THIRD_PARTY.md) for details.
 
-UZDoom is licensed under the **GNU General Public License (GPL) version 3 or any later version (GPLv3+)**.
-
-This program is distributed in the hope that it will be useful, but **WITHOUT ANY WARRANTY**. See the GNU General Public License for more details.
-
-You can view the full license text here: <https://www.gnu.org/licenses/>
-
-**Copyrights:**
-* Copyright 1993-1996 id Software
-* Copyright 1999-2016 Marisa Heit
-* Copyright 2002-2016 Christoph Oelckers
-* Copyright 2017-2025 GZDoom Maintainers and Contributors
-* Copyright 2025-2026 UZDoom Maintainers and Contributors
-
-## 🌐 Resources
-
-* [Home Page][home]
-* [Wiki][wiki]
-* [Discord Server][community]
-* [Forum][forum]
-* [Engine Translation][status_trans]
-* [Game Translation][status_trans_games]
-
-### 🛠️ Building UZDoom
-
-To build UZDoom from source, please see UZDoom's GitHub [wiki][gh_wiki] for a full list of dependencies and detailed instructions. Build For [Linux][gh_linux] / [Windows][gh_windows] / [MacOS][gh_apple]
-
-<div align="center">
-
-[ <img src="branding/UZDoom%20Banner.svg" alt="UZDoom Footer" style="height: 8em; width: 100%" /> ][repo]
-
-[<img alt="Translation status" style="width: 49%" src="https://hosted.weblate.org/widget/uzdoom/open-graph.png" />][status_trans]
-[<img alt="Translation status" style="width: 49%" src="https://hosted.weblate.org/widget/doom-engine-games/open-graph.png" />][status_trans_games]
-
-</div>
-
-[gzdoom]: https://github.com/ZDoom/gzdoom/
-[zdoom]: https://github.com/rheit/zdoom/
-
-[repo]: https://github.com/UZDoom/UZDoom/
-[home]: https://zdoom.org/
-[wiki]: https://zdoom.org/wiki/
-[forum]: https://forum.zdoom.org/
-[community]: https://dsc.gg/zdoom
-
-[gh_wiki]: https://github.com/UZDoom/UZDoom/wiki/
-[gh_linux]: https://github.com/UZDoom/UZDoom/wiki/Compilation#linux
-[gh_windows]: https://github.com/UZDoom/UZDoom/wiki/Compilation#windows
-[gh_apple]: https://github.com/UZDoom/UZDoom/wiki/Compilation#macos
-
-[status_git]: https://github.com/UZDoom/UZDoom/actions/workflows/continuous_integration.yml
-[badge_git]: https://github.com/UZDoom/UZDoom/actions/workflows/continuous_integration.yml/badge.svg
-
-[badge_trans]: https://hosted.weblate.org/widget/uzdoom/svg-badge.svg
-[status_trans]: https://hosted.weblate.org/engage/uzdoom/
-
-[badge_trans_games]: https://hosted.weblate.org/widget/doom-engine-games/svg-badge.svg
-[status_trans_games]: https://hosted.weblate.org/engage/doom-engine-games/
+Bug reports and feature proposals belong in the
+[SOL Engine issue tracker](https://github.com/claire-moon/sol-engine/issues).

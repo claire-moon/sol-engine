@@ -4,7 +4,7 @@ cmake_policy( SET CMP0067 NEW )
 cmake_policy( SET CMP0091 NEW )
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-project(UZDoom)
+project(SOLEngine VERSION 0.3.0)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -28,7 +28,9 @@ if(NOT FORCE_NO_LTO)
 endif()
 
 if(WIN32)
-	option( USE_UPDATER "enable auto-updater" OFF )
+	# SOL accepts upstream changes through reviewed source intake, never through
+	# UZDoom's binary updater. A SOL updater is deferred until packaging v0.12.
+	set( USE_UPDATER OFF CACHE BOOL "SOL updater is not available yet" FORCE )
 endif()
 
 if(USE_UPDATER)
@@ -149,9 +151,9 @@ function( add_pk3 PK3_NAME )
 
 	# Phase 5: Add the resulting PK3 to the install target.
 	if( WIN32 )
-		set( INSTALL_PK3_PATH . CACHE STRING "Directory where zdoom.pk3 will be placed during install." )
+		set( INSTALL_PK3_PATH . CACHE STRING "Directory where sol-engine.pk3 will be placed during install." )
 	else()
-		set( INSTALL_PK3_PATH share/games/${ZDOOM_EXE_NAME} CACHE STRING "Directory where zdoom.pk3 will be placed during install." )
+		set( INSTALL_PK3_PATH share/games/${ZDOOM_EXE_NAME} CACHE STRING "Directory where sol-engine.pk3 will be placed during install." )
 	endif()
 	install(FILES "${PROJECT_BINARY_DIR}/${PK3_NAME}"
 		DESTINATION ${INSTALL_PK3_PATH}
@@ -188,8 +190,8 @@ IF( NOT CMAKE_BUILD_TYPE )
 		FORCE )
 ENDIF()
 
-set( ZDOOM_OUTPUT_DIR ${CMAKE_BINARY_DIR} CACHE PATH "Directory where zdoom.pk3 and the executable will be created." )
-set( ZDOOM_EXE_NAME "uzdoom" CACHE FILEPATH "Name of the executable to create" )
+set( ZDOOM_OUTPUT_DIR ${CMAKE_BINARY_DIR} CACHE PATH "Directory where sol-engine.pk3 and the executable will be created." )
+set( ZDOOM_EXE_NAME "sol-engine" CACHE STRING "Name of the executable to create" )
 
 if(DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
 	set(ZDOOM_RESOURCE_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")

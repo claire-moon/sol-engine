@@ -76,6 +76,7 @@
 #include "sbar.h"
 #include "screenjob.h"
 #include "serializer_doom.h"
+#include "sol/sol_run_state.h"
 #include "st_stuff.h"
 #include "v_palette.h"
 #include "version.h"
@@ -2165,6 +2166,9 @@ void G_DoLoadGame ()
 		LoadGameError("TXT_SGINFOERR");
 		return;
 	}
+	uint32_t solRunModificationMask = 0;
+	arc("sol_run_modifications", solRunModificationMask);
+	SOL_RestoreRunModificationMask(solRunModificationMask);
 
 
 	// Read intermission data for hubs
@@ -2497,7 +2501,9 @@ void G_DoSaveGame (bool okForQuicksave, bool forceQuicksave, FString filename, c
 		savegameglobals("leveltime", level.time);
 	}
 
+	uint32_t solRunModificationMask = SOL_GetRunModificationMask();
 	savegameglobals("globalfreeze", globalfreeze)
+					("sol_run_modifications", solRunModificationMask)
 					("startpos", startpos)
 					("laststartpos", laststartpos);
 

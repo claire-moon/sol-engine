@@ -467,9 +467,12 @@ PNamespace *ParseOneScript(const int baselump, ZCCParseState &state)
 			{
 				sc.ScriptError("Bad version directive");
 			}
-			if (state.ParseVersion > MakeVersion(VER_MAJOR, VER_MINOR, VER_REVISION))
+			// SOL's product/network version is intentionally independent from the
+			// inherited UZDoom ZScript API level. Content compatibility follows the
+			// upstream engine version this fork is based on.
+			if (state.ParseVersion > MakeVersion(ENG_MAJOR, ENG_MINOR, ENG_REVISION))
 			{
-				sc.ScriptError("The file you are attempting to run requires a newer version of " GAMENAME ".\n\nA version with ZScript version %d.%d.%d is required, but your copy of " GAMENAME " only supports %d.%d.%d. Please upgrade!", state.ParseVersion.major, state.ParseVersion.minor, state.ParseVersion.revision, VER_MAJOR, VER_MINOR, VER_REVISION);
+				sc.ScriptError("The file you are attempting to run requires a newer version of " GAMENAME ".\n\nA version with ZScript version %d.%d.%d is required, but your copy of " GAMENAME " only supports %d.%d.%d. Please upgrade!", state.ParseVersion.major, state.ParseVersion.minor, state.ParseVersion.revision, ENG_MAJOR, ENG_MINOR, ENG_REVISION);
 			}
 		}
 		else

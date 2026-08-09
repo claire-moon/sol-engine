@@ -26,7 +26,7 @@ class SolBootstrap : EventHandler
         {
             EnsureStoryState(i);
         }
-        Console.Printf("SOL v0.2.0 story foundation runtime loaded");
+        Console.Printf("SOL Engine v0.3.0 identity runtime loaded");
     }
 
     override void PlayerEntered(PlayerEvent event)

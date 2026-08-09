@@ -39,6 +39,7 @@
 #include "m_misc.h"
 #include "sc_man.h"
 #include "version.h"
+#include <zwidget/systemdialogs/open_file_dialog.h>
 
 EXTERN_CVAR(Bool, queryiwad);
 EXTERN_CVAR(String, queryiwad_key);
@@ -605,6 +606,23 @@ void FIWadManager::ValidateIWADs()
 
 static bool havepicked = false;
 
+static bool IsSolIWAD(const FIWADInfo& info)
+{
+	return info.Autoname.IndexOf("doom.id.doom1.") == 0 &&
+		(info.flags & GI_SHAREWARE) == 0;
+}
+
+static FString PickSolIWAD()
+{
+	auto dialog = OpenFileDialog::Create(nullptr);
+	dialog->SetTitle("SOL Engine - Locate DOOM.WAD or DOOMU.WAD");
+	dialog->SetDefaultExtension("wad");
+	dialog->AddFilter("Doom IWAD (*.wad)", "*.wad");
+	dialog->AddFilter("All files", "*.*");
+	if (!dialog->Show()) return {};
+	return dialog->Filename().c_str();
+}
+
 
 FString FIWadManager::IWADPathFileSearch(const FString &file)
 {
@@ -654,11 +672,15 @@ int FIWadManager::IdentifyVersion (std::vector<FileSys::ResourceName>&wadfiles, 
 #ifdef _WIN32
 			isAbsolute |= (custwad.Len() >= 2 && custwad[1] == ':');
 #endif
-			if (isAbsolute)
+			// Honor an explicitly existing path before joining it to configured
+			// IWAD roots. This covers both absolute paths and relative paths with
+			// directory components while keeping the requested candidate last (and
+			// therefore highest priority in ValidateIWADs).
+			if (FileExists(custwad))
 			{
-				if (FileExists(custwad)) mFoundWads.Push({ custwad, "", -1 });
+				mFoundWads.Push({ custwad, "", -1 });
 			}
-			else
+			else if (!isAbsolute)
 			{
 				for (auto &dir : mSearchPaths)
 				{
@@ -703,6 +725,36 @@ int FIWadManager::IdentifyVersion (std::vector<FileSys::ResourceName>&wadfiles, 
 
 	// Now check if what got collected actually is an IWAD.
 	ValidateIWADs();
+
+	// SOL is a Doom/Ultimate Doom product. Keep the upstream detector so all
+	// legitimate Doom 1 releases are recognized, then hide every unsupported
+	// game and the shareware IWAD before command-line or picker selection.
+	for (auto& found : mFoundWads)
+	{
+		if (found.mInfoIndex >= 0 && !IsSolIWAD(mIWadInfos[found.mInfoIndex]))
+		{
+			found.mInfoIndex = -1;
+		}
+	}
+	if (iwadparm != nullptr && numFoundWads < mFoundWads.Size())
+	{
+		bool explicitSupported = false;
+		for (unsigned index = numFoundWads; index < mFoundWads.Size(); ++index)
+		{
+			if (mFoundWads[index].mInfoIndex >= 0)
+			{
+				explicitSupported = true;
+				break;
+			}
+		}
+		if (!explicitSupported)
+		{
+			I_FatalError(
+				"%s is not a supported registered Doom IWAD.\n"
+				"SOL Engine requires DOOM.WAD or DOOMU.WAD; Doom shareware and Doom II-family IWADs are not supported.",
+				iwadparm);
+		}
+	}
 
 	// Check for required dependencies.
 	for (unsigned i = 0; i < mFoundWads.Size(); i++)
@@ -792,6 +844,32 @@ int FIWadManager::IdentifyVersion (std::vector<FileSys::ResourceName>&wadfiles, 
 	// If we still haven't found a suitable IWAD let's error out.
 	if (picks.Size() == 0)
 	{
+		FString selectedIWAD = PickSolIWAD();
+		if (selectedIWAD.IsNotEmpty())
+		{
+			mFoundWads.Push({ selectedIWAD, "", -1 });
+			ValidateIWADs();
+			auto& selected = mFoundWads.Last();
+			if (selected.mInfoIndex < 0 || !IsSolIWAD(mIWadInfos[selected.mInfoIndex]))
+			{
+				I_FatalError(
+					"%s is not a supported registered Doom IWAD.\n"
+					"SOL Engine requires DOOM.WAD or DOOMU.WAD; Doom shareware and Doom II-family IWADs are not supported.",
+					selectedIWAD.GetChars());
+			}
+
+			picks.Push(selected);
+			if (GameConfig->SetSection("IWADSearch.Directories", true))
+			{
+				GameConfig->EnsureValueForKey("Path", ExtractFilePath(selectedIWAD.GetChars()));
+			}
+		}
+	}
+
+	// The platform file dialog can be unavailable (for example, a headless
+	// session) or the player can cancel it. Keep a precise manual fallback.
+	if (picks.Size() == 0)
+	{
 		const char *gamedir, *cfgfile, *extrasteps = "";
 
 #if defined(_WIN32)
@@ -802,7 +880,7 @@ int FIWadManager::IdentifyVersion (std::vector<FileSys::ResourceName>&wadfiles, 
 		cfgfile = "~/Library/Preferences/" GAMENAMELOWERCASE ".ini";
 #else
 		auto gd = M_GetAppDataPath(true);
-		auto cd = FStringf("%s/" GAMENAMELOWERCASE ".ini", GetConfigPath());
+		auto cd = FString(GameConfig->GetPathName());
 		gd.Substitute("$HOME/", "~/");
 		cd.Substitute("$HOME/", "~/");
 		gamedir = gd.GetChars();
@@ -813,7 +891,7 @@ int FIWadManager::IdentifyVersion (std::vector<FileSys::ResourceName>&wadfiles, 
 #endif
 
 		I_FatalError(
-			"Cannot find a game IWAD (doom.wad, heretic.wad, etc)!\n"
+			"Cannot find a supported registered Doom IWAD (DOOM.WAD or DOOMU.WAD)!\n"
 			"Did you install " GAMENAME " properly?\n"
 			"\n"
 			"You can do any of the following:\n"

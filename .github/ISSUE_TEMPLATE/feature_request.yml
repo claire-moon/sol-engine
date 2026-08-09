@@ -19,11 +19,9 @@ body:
       description: Which game is your feature request for?
       multiple: false
       options:
-        - All
-        - Doom
-        - Heretic
-        - Hexen
-        - Strife
+        - SOL runtime (all supported IWADs)
+        - Registered Doom
+        - Ultimate Doom
       default: 0
     validations:
       required: false

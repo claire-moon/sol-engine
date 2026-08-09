@@ -1,7 +1,12 @@
 #!/usr/bin/cmake -P
 
-# Stamp macOS bundle Info.plist with version from gitinfo.h.
-# Called as POST_BUILD with -DGITINFO_H=... -DPLIST_FILE=...
+# Stamp macOS bundle Info.plist with the SOL product version. Git metadata is
+# not a product-version source because untagged intake branches describe as a
+# raw commit hash.
+
+if(DEFINED PRODUCT_VERSION AND PRODUCT_VERSION MATCHES "^[0-9]+\\.[0-9]+\\.[0-9]+$")
+	set(Version "${PRODUCT_VERSION}")
+else()
 
 if(NOT EXISTS "${GITINFO_H}")
 	message(STATUS "'${GITINFO_H}' not found, skipping plist version stamp")
@@ -18,6 +23,7 @@ if(NOT _match)
 	return()
 endif()
 set(Version "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}.${CMAKE_MATCH_3}")
+endif()
 
 message(STATUS "Plist bundle version: ${Version}")
 execute_process(COMMAND /usr/libexec/PlistBuddy

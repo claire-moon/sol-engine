@@ -46,6 +46,7 @@
 #include "s_music.h"
 #include "s_sound.h"
 #include "savegamemanager.h"
+#include "sol/sol_run_state.h"
 #include "texturemanager.h"
 #include "v_draw.h"
 #include "v_text.h"
@@ -293,6 +294,7 @@ CCMD (idclev)
 			return;
 
 		// So be it.
+		SOL_MarkRunModified(SOLMOD_ConsoleTravel);
 		Printf ("%s\n", GStrings.GetString("STSTR_CLEV"));
 		G_DeferedInitNew (mapname.GetChars());
 		//players[0].health = 0;		// Force reset
@@ -364,6 +366,7 @@ CCMD (changemap)
 			}
 			else
 			{
+				SOL_MarkRunModified(SOLMOD_ConsoleTravel);
 				if (argv.argc() > 2)
 				{
 					Net_WriteInt8 (DEM_CHANGEMAP2);
@@ -1088,6 +1091,7 @@ CCMD(nextmap)
 
 	if (primaryLevel->NextMap.Len() > 0 && primaryLevel->NextMap.Compare("enDSeQ", 6))
 	{
+		SOL_MarkRunModified(SOLMOD_ConsoleTravel);
 		G_DeferedInitNew(primaryLevel->NextMap.GetChars());
 	}
 	else
@@ -1112,6 +1116,7 @@ CCMD(nextsecret)
 
 	if (primaryLevel->NextSecretMap.Len() > 0 && primaryLevel->NextSecretMap.Compare("enDSeQ", 6))
 	{
+		SOL_MarkRunModified(SOLMOD_ConsoleTravel);
 		G_DeferedInitNew(primaryLevel->NextSecretMap.GetChars());
 	}
 	else

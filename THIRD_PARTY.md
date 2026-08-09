@@ -22,8 +22,8 @@ all applicable notice/source obligations are satisfied.
 | 8 | NashGore official voxels | Cheello and Nash Muhandes; redistribution terms require review |
 | 9 | Final Custom Doom 1.0.0 beta | GPL-3.0-only, © 2025 Alexander Kromm |
 | 10 | Vanilla Essence 4.3 | review-required |
-| 11 | HQ PSX music | local-only proprietary PlayStation-derived audio |
-| 12 | PlayStation sound effects | local-only proprietary PlayStation-derived audio |
+| 11 | HQ PSX music | accidental local input still mounted by transitional contract 2; ordered retired/unmounted in wadpack contract 3 |
+| 12 | PlayStation sound effects | local-only development placeholder pending original SOL replacement |
 | 13 | Flashlight++ 9.1 | review-required |
 | 14 | WW Alpha HUD | review-required |
 | 15 | Universal Ambience | upstream distribution lists GPL; third-party audio assets require review |
@@ -48,9 +48,10 @@ source hashes, and local-edited-variant warning are maintained in the sibling
 ## Native bundle behavior
 
 The physical `sol.pk3` uses numbered root-level `.wad` carrier names. Those
-suffixes trigger UZDoom's existing embedded-resource handling; the contained
-bytes remain the original normalized WAD/PK3 archives and are opened by file
-content. This makes one `-file sol.pk3` mount the complete stack in 01→20 order.
+suffixes trigger the inherited embedded-resource handling; the contained bytes
+remain the original normalized WAD/PK3 archives and are opened by file content.
+SOL Engine v0.3.0 mounts adjacent `sol.pk3` natively, which mounts the complete
+stack in 01→20 order without a wrapper-supplied `-file` argument.
 
 ## Distribution boundary
 

@@ -42,7 +42,7 @@
 
 const char *GetVersionString()
 {
-	return GIT_DESCRIPTION;
+	return VERSIONSTR;
 }
 
 //==========================================================================
@@ -92,7 +92,7 @@ int GetGitDistance()
 VersionInfo GetCurrentVersionForUpdater()
 {
 	static VersionInfo version = ([]() {
-		VersionInfo v = VersionInfo{GIT_DESCRIPTION};
+		VersionInfo v = VersionInfo{VERSIONSTR};
 		assert(v.major == VER_MAJOR);
 		assert(v.minor == VER_MINOR);
 		assert(v.revision == VER_REVISION);

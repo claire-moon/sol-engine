@@ -413,8 +413,7 @@ set( PLAT_UNIX_SOURCES
 	common/platform/posix/unix/i_specialpaths.cpp )
 set( PLAT_OSX_SOURCES
 	common/platform/posix/osx/iwadpicker_cocoa.mm
-	common/platform/posix/osx/i_specialpaths.mm
-	posix/osx/zdoom.icns )
+	common/platform/posix/osx/i_specialpaths.mm )
 set( PLAT_COCOA_SOURCES
 	common/platform/posix/cocoa/i_input.mm
 	common/platform/posix/cocoa/i_joystick.cpp
@@ -431,6 +430,20 @@ if( WIN32 )
 
 	set( SYSTEM_SOURCES ${SYSTEM_SOURCES} win32/zdoom.rc )
 elseif( APPLE )
+	file(GLOB SOL_MAC_ICON_SOURCES "${CMAKE_SOURCE_DIR}/branding/sol/sol-engine.iconset/*.png")
+	add_custom_command(
+		OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/sol-engine.icns"
+		COMMAND iconutil -c icns
+			-o "${CMAKE_CURRENT_BINARY_DIR}/sol-engine.icns"
+			"${CMAKE_SOURCE_DIR}/branding/sol/sol-engine.iconset"
+		DEPENDS ${SOL_MAC_ICON_SOURCES}
+		COMMENT "Building SOL Engine macOS icon"
+		VERBATIM)
+	set_source_files_properties(
+		"${CMAKE_CURRENT_BINARY_DIR}/sol-engine.icns"
+		PROPERTIES GENERATED TRUE MACOSX_PACKAGE_LOCATION Resources )
+	list(APPEND PLAT_OSX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/sol-engine.icns")
+
 	if( OSX_COCOA_BACKEND )
 		set( SYSTEM_SOURCES_DIR common/platform/posix common/platform/posix/cocoa )
 		set( SYSTEM_SOURCES ${PLAT_COCOA_SOURCES} )
@@ -444,7 +457,6 @@ elseif( APPLE )
 
 	set( SYSTEM_SOURCES ${SYSTEM_SOURCES} ${PLAT_POSIX_SOURCES} ${PLAT_OSX_SOURCES} )
 
-	set_source_files_properties( posix/osx/zdoom.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources )
 	set_source_files_properties( common/platform/posix/osx/iwadpicker_cocoa.mm PROPERTIES COMPILE_FLAGS -fobjc-exceptions )
 else()
 	option (SYSTEMINSTALL "Set global progdir based on CMake Install Dir" OFF)
@@ -794,6 +806,8 @@ set (PCH_SOURCES
 	ct_chat.cpp
 	d_iwad.cpp
 	d_main.cpp
+	sol/sol_run_state.cpp
+	sol/sol_run_state.h
 	d_defcvars.cpp
 	d_anonstats.cpp
 	d_net.cpp
@@ -1454,7 +1468,7 @@ add_custom_command(TARGET zdoom POST_BUILD
 
 	COMMAND ${CMAKE_COMMAND} -E copy_if_different
 		"${CMAKE_SOURCE_DIR}/soundfont/uzdoom.sf2"
-		"${ZDOOM_RESOURCE_DIR}/soundfonts/uzdoom.sf2"
+		"${ZDOOM_RESOURCE_DIR}/soundfonts/sol-engine.sf2"
 
 	COMMAND ${CMAKE_COMMAND} -E copy_if_different
 		"${CMAKE_SOURCE_DIR}/fm_banks/GENMIDI.GS.wopl"
@@ -1498,17 +1512,19 @@ install(DIRECTORY "${PROJECT_BINARY_DIR}/soundfonts" "${PROJECT_BINARY_DIR}/fm_b
 
 # Install Linux desktop launcher, icon and metadata
 if( UNIX AND NOT APPLE )
-	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/posix/freedesktop/org.zdoom.UZDoom.desktop
+	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/posix/freedesktop/io.github.claire_moon.solengine.desktop
 			DESTINATION share/applications
 			PERMISSIONS WORLD_EXECUTE WORLD_READ GROUP_READ GROUP_EXECUTE OWNER_READ OWNER_WRITE OWNER_EXECUTE)
-	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/posix/freedesktop/org.zdoom.UZDoom.metainfo.xml
+	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/posix/freedesktop/io.github.claire_moon.solengine.metainfo.xml
 			DESTINATION share/metainfo
 			PERMISSIONS WORLD_READ GROUP_READ GROUP_EXECUTE OWNER_READ OWNER_WRITE)
-	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/posix/freedesktop/org.zdoom.UZDoom.svg
-			DESTINATION share/icons/hicolor/scalable/apps
+	install(FILES ${CMAKE_SOURCE_DIR}/branding/misc/appicon.png
+			DESTINATION share/icons/hicolor/512x512/apps
+			RENAME io.github.claire_moon.solengine.png
 			PERMISSIONS WORLD_READ GROUP_READ GROUP_EXECUTE OWNER_READ OWNER_WRITE)
 	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/posix/freedesktop/org.zdoom.UZDoom-mime.xml
 			DESTINATION share/mime/packages
+			RENAME io.github.claire_moon.solengine-mime.xml
 			PERMISSIONS WORLD_READ GROUP_READ GROUP_EXECUTE OWNER_READ OWNER_WRITE)
 	# note:
 	# A post-install script would most likely need to run the following to register the desktop and mime files with the system
@@ -1535,13 +1551,15 @@ if( APPLE )
 	set_target_properties(zdoom PROPERTIES
 		LINK_FLAGS "${LINK_FRAMEWORKS}"
 		MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/posix/osx/zdoom-info.plist"
-		XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.zdoom.UZDoom"
+		MACOSX_BUNDLE_BUNDLE_NAME "SOL Engine"
+		XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "io.github.claire_moon.solengine"
 		XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "" )
 
 	# Update plist bundle version from gitinfo.h at build time
 	add_custom_command(TARGET zdoom POST_BUILD
 		COMMAND "${CMAKE_COMMAND}"
 			-DGITINFO_H="${CMAKE_BINARY_DIR}/gitinfo.h"
+			-DPRODUCT_VERSION="${PROJECT_VERSION}"
 			-DPLIST_FILE="$<TARGET_BUNDLE_DIR:zdoom>/Contents/Info.plist"
 			-P "${CMAKE_CURRENT_SOURCE_DIR}/posix/osx/UpdatePlistVersion.cmake"
 		COMMENT "Updating bundle version in Info.plist"

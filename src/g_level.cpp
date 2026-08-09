@@ -76,6 +76,7 @@
 #include "screenjob.h"
 #include "types.h"
 #include "gstrings.h"
+#include "sol/sol_run_state.h"
 
 #include "gi.h"
 
@@ -262,6 +263,7 @@ void G_DeferedInitNew (const char *mapname, int newskill)
 
 void G_DeferedInitNew (FNewGameStartup *gs)
 {
+	SOL_RequestNewRunReset();
 	if (gs->hasPlayerClass) playerclass = gs->PlayerClass.GetChars();
 	d_mapname = AllEpisodes[gs->Episode].mEpisodeMap;
 	d_skill = gs->Skill;
@@ -316,6 +318,7 @@ CCMD (map)
 			}
 			else
 			{
+				SOL_MarkRunModified(SOLMOD_ConsoleTravel);
 				if (argv.argc() > 2 && stricmp(argv[2], "coop") == 0)
 				{
 					deathmatch = false;
@@ -502,6 +505,7 @@ void G_NewInit ()
 
 void G_DoNewGame (void)
 {
+	SOL_ApplyNewRunReset();
 	G_NewInit ();
 	playeringame[consoleplayer] = 1;
 	if (d_skill != -1)

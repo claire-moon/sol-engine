@@ -55,6 +55,7 @@
 #include "savegamemanager.h"
 #include "sbar.h"
 #include "screenjob.h"
+#include "sol/sol_run_state.h"
 #include "version.h"
 #include "vm.h"
 
@@ -2575,8 +2576,49 @@ static void UseFlechette(int player)
 // [RH] Execute a special "ticcmd". The type byte should
 //		have already been read, and the stream is positioned
 //		at the beginning of the command's actual data.
+static void SOL_ClassifyNetCommand(int cmd)
+{
+	switch (cmd)
+	{
+	case DEM_GENERICCHEAT:
+	case DEM_GIVECHEAT:
+	case DEM_TAKECHEAT:
+	case DEM_SETINV:
+	case DEM_WARPCHEAT:
+	case DEM_MORPHEX:
+	case DEM_KILLCLASSCHEAT:
+	case DEM_MDK:
+	case DEM_REMOVE:
+	case DEM_SUMMON:
+	case DEM_SUMMONFRIEND:
+	case DEM_SUMMONFOE:
+	case DEM_SUMMONMBF:
+	case DEM_SUMMON2:
+	case DEM_SUMMONFRIEND2:
+	case DEM_SUMMONFOE2:
+		SOL_MarkRunModified(SOLMOD_Cheat);
+		break;
+
+	case DEM_CHANGEMAP:
+	case DEM_CHANGEMAP2:
+		SOL_MarkRunModified(SOLMOD_ConsoleTravel);
+		break;
+
+	case DEM_RUNSCRIPT:
+	case DEM_RUNSCRIPT2:
+	case DEM_RUNNAMEDSCRIPT:
+	case DEM_RUNSPECIAL:
+	case DEM_ADDBOT:
+	case DEM_KILLBOTS:
+	case DEM_CHANGESKILL:
+		SOL_MarkRunModified(SOLMOD_Developer);
+		break;
+	}
+}
+
 void Net_DoCommand(int cmd, TArrayView<uint8_t>& stream, int player)
 {
+	SOL_ClassifyNetCommand(cmd);
 	int8_t pos = 0;
 	const char* s = nullptr;
 	int i = 0;

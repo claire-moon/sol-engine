@@ -1,9 +1,15 @@
 # SOL branding
 
-The shared SOL engine/editor icon was approved on 2026-08-06.
+The SOL project owner supplied a visual reference on 2026-08-08 for the shared
+SOL Engine and SOL Editor identity. The reference was used only as design input;
+it is not stored in or distributed by this repository.
 
-- `sol-icon-master.png` preserves the supplied source bytes unchanged.
-- `branding/misc/appicon.png` is the padded 512-pixel engine icon.
-- `branding/misc/appicon.16.png` is the padded 16-pixel engine icon.
+`sol-celestial-master.png` is the original generated raster master created for
+SOL under the project owner's direction. Its platform derivatives include
+`branding/misc/appicon.png`, the macOS iconset, Windows ICO, editor icons, and
+the engine boot logo. The master and those derivatives are SOL project assets
+distributed under GPL-3.0-or-later with the rest of this repository.
 
-Additional platform derivatives will be generated from the master when installer work begins. Do not redraw, recolor, label, or split the engine/editor identity without a recorded design decision. Creator, copyright holder, and distribution license must be recorded before the first public binary release.
+The earlier `sol-icon-master.png` is retained for history but is no longer the
+active identity source. Do not independently redraw or split the engine/editor
+identity without a recorded design decision.

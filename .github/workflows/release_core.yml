@@ -79,9 +79,9 @@ jobs:
             fi
           }
 
-          move artifacts/Windows\ Release/*.zip Windows-UZDoom-${{ inputs.title }}-x86_64.zip windows
-          move artifacts/MacOS\ Release/*.dmg MacOS-UZDoom-${{ inputs.title }}-x86_64.dmg macos
-          appimage=Linux-UZDoom-${{ inputs.title }}-x86_64.AppImage
+          move artifacts/Windows\ Release/*.zip Windows-SOL-Engine-${{ inputs.title }}-x86_64.zip windows
+          move artifacts/MacOS\ Release/*.dmg MacOS-SOL-Engine-${{ inputs.title }}-x86_64.dmg macos
+          appimage=Linux-SOL-Engine-${{ inputs.title }}-x86_64.AppImage
           move artifacts/Linux\ Release/*.AppImage ${appimage} linux
           move artifacts/Linux\ Release/*.zsync ${appimage}.zsync _
 
@@ -98,17 +98,22 @@ jobs:
           LABEL: ${{ inputs.label-name }}
           PREVIEW: ${{ inputs.preview && 'true' || '' }}
         run: |
-          version=$(git describe --tags --exclude x-\* ${COMMIT})
-          tag=$(git describe --tags --abbrev=0 --exclude x-\* ${COMMIT})
-          distance=$(git rev-list "${tag}..${COMMIT}" --count)
-          semver="$tag"
-          if [[ $distance != 0 ]]; then semver+=".${distance}+${COMMIT:0:7}"; fi
+          product_version=$(python3 -c 'import json; print(json.load(open("sol/version.json"))["version"])')
+          if tag=$(git describe --tags --abbrev=0 --exclude 'x-*' "${COMMIT}" 2>/dev/null); then
+              distance=$(git rev-list "${tag}..${COMMIT}" --count)
+              semver="$tag"
+              if [[ $distance != 0 ]]; then semver+=".${distance}+${COMMIT:0:7}"; fi
+          else
+              tag=
+              distance=0
+              semver="${product_version}+${COMMIT:0:7}"
+          fi
           commit=$(git log --format=%s -n 1 ${COMMIT})
           timestamp=$(date -uIseconds)
           if [[ -n "${PREVIEW}" && ${BRANCH} != 'trunk' ]]; then
-               base=$(git merge-base origin/trunk ${COMMIT})
-               basetext=$(git log --format=%s -n 1 ${base})
-               base=$(git describe --tags --exclude x-\* ${base})
+               base_commit=$(git merge-base origin/trunk ${COMMIT})
+               basetext=$(git log --format=%s -n 1 ${base_commit})
+               base=$(git describe --tags --exclude 'x-*' "${base_commit}" 2>/dev/null || printf '%s+%s' "${product_version}" "${base_commit:0:7}")
           fi
           if [ -n "${LABEL}" ]; then
               prs=$(gh pr list --json url,title --label "${LABEL}" --jq '[.[] | "[\(.title)](\(.url))"] | join(" - ")' || true)
@@ -164,7 +169,7 @@ jobs:
       - name: Upload
         uses: softprops/action-gh-release@v2.5.0 # FIXME: update this
         with:
-          name: UZDoom ${{ inputs.title }}
+          name: SOL Engine ${{ inputs.title }}
           tag_name: ${{ inputs.tag-name }}
           draft: ${{ ! inputs.preview }}
           prerelease: ${{ inputs.preview }}

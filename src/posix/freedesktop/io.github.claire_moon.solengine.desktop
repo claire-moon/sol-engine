@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=SOL Engine
+Comment=Run the SOL total-conversion development build
+Icon=io.github.claire_moon.solengine
+Categories=Game;Shooter;
+Exec=sol-engine %F
+StartupNotify=true
+PrefersNonDefaultGPU=true
+Terminal=false
+Type=Application
+Keywords=SOL;Doom;first;person;shooter;
+MimeType=application/x-doom-wad;application/x-doom-pk7;application/x-doom-pk3;
+StartupWMClass=io.github.claire_moon.solengine

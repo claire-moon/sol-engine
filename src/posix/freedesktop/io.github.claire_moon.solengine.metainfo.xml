@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+	<id>io.github.claire_moon.solengine</id>
+	<metadata_license>CC0-1.0</metadata_license>
+	<project_license>GPL-3.0-or-later</project_license>
+	<name>SOL Engine</name>
+	<summary>Purpose-built runtime for the SOL Doom modification</summary>
+	<developer id="io.github.claire_moon">
+		<name>SOL contributors</name>
+	</developer>
+	<url type="homepage">https://github.com/claire-moon/sol-engine</url>
+	<url type="bugtracker">https://github.com/claire-moon/sol-engine/issues</url>
+	<url type="vcs-browser">https://github.com/claire-moon/sol-engine</url>
+	<description>
+		<p>SOL Engine is the dedicated runtime for SOL, a free Doom modification built on UZDoom technology.</p>
+		<p>A user-owned DOOM.WAD or DOOMU.WAD and an adjacent locally built sol.pk3 are required. Commercial Doom data and redistribution-restricted development resources are not included.</p>
+	</description>
+	<launchable type="desktop-id">io.github.claire_moon.solengine.desktop</launchable>
+	<provides>
+		<binary>sol-engine</binary>
+	</provides>
+	<content_rating type="oars-1.1">
+		<content_attribute id="violence-cartoon">intense</content_attribute>
+		<content_attribute id="violence-bloodshed">intense</content_attribute>
+	</content_rating>
+	<releases>
+		<release version="0.3.0" date="2026-08-08" type="development">
+			<description><p>Establishes the native SOL Engine identity and boot contract.</p></description>
+		</release>
+	</releases>
+</component>

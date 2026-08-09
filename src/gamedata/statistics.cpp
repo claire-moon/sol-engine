@@ -45,10 +45,11 @@
 #include "a_sharedglobal.h"
 #include "p_lnspec.h"
 #include "serializer.h"
+#include "sol/sol_run_state.h"
 #include "g_levellocals.h"
 
 CVAR(Int, savestatistics, 0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-CVAR(String, statfile, "zdoomstat.txt", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CVAR(String, statfile, "sol-engine-statistics.txt", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 //==========================================================================
 //
@@ -225,6 +226,7 @@ inline int seconds(int v) { return (v % (60*TICRATE))/TICRATE; }
 
 static void SaveStatistics(const char *fn, TArray<FStatistics> &statlist)
 {
+	if (!SOL_AllowProgressionWrite("episode statistics")) return;
 	unsigned int j;
 
 	FileWriter *fw = FileWriter::Open(fn);
@@ -448,6 +450,10 @@ void STAT_ChangeLevel(const char *newl, FLevelLocals *Level)
 	{
 		if ((nextinfo == NULL || (nextinfo->flags2 & LEVEL2_ENDGAME)) && StartEpisode != NULL)
 		{
+			// Do not let a modified episode enter the process-global collection:
+			// a later canonical New Game could otherwise flush the stale record.
+			if (!SOL_AllowProgressionWrite("episode statistics")) return;
+
 			// we reached the end of this episode
 			int wad = 0;
 			MapData * map = P_OpenMapData(StartEpisode->mEpisodeMap.GetChars(), false);

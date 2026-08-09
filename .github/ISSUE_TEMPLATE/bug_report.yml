@@ -16,12 +16,12 @@ body:
   - type: input
     id: version
     attributes:
-      label: UZDoom Version
+      label: SOL Engine Version
       description: |
         What version are you using?
-        Run `uzdoom --version` or check in the console in game.
-        Make sure to update to the latest [release](https://github.com/UZDoom/UZDoom/releases) version and test again before continuing.
-      placeholder: "UZDoom 4.0.0, git version, branch name, etc."
+        Run `sol-engine --version` or check in the in-game console.
+        Make sure to update to the latest [SOL Engine release](https://github.com/claire-moon/sol-engine/releases) and test again before continuing.
+      placeholder: "SOL Engine 0.3.0, git version, branch name, etc."
     validations:
       required: true
   - type: dropdown
@@ -31,11 +31,9 @@ body:
       description: Which game does your bug apply to?
       multiple: false
       options:
-        - All
-        - Doom
-        - Heretic
-        - Hexen
-        - Strife
+        - SOL runtime (all supported IWADs)
+        - Registered Doom
+        - Ultimate Doom
       default: 0
   - type: dropdown
     id: OS
@@ -96,7 +94,7 @@ body:
     attributes:
       label: Configuration
       description: |
-        Share the config file(s) you've been using to run the program (`uzdoom.ini`).
+        Share the config file(s) you've been using to run the program (`sol-engine.ini`).
         Please avoid pasting the full config, _use attachments or links_ in a [Gist](https://gist.github.com/).
       placeholder: "Example: cl_autorun=true"
       render: ini # syntax highlighting
