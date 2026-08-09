@@ -19,7 +19,27 @@ jobs:
           ref: sol/v0.4.0-bundle-authority
           fetch-depth: 0
       - name: Apply v0.4 source changes
-        run: python3 tools/sol-v04-apply.py
+        run: |
+          python3 - <<'PY'
+          import importlib.util
+          from pathlib import Path
+
+          script = Path('tools/sol-v04-apply.py').resolve()
+          spec = importlib.util.spec_from_file_location('sol_v04_apply', script)
+          module = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(module)
+
+          module.write_workflow = lambda: None
+          original_unlink = Path.unlink
+
+          def protected_unlink(path, *args, **kwargs):
+              if path.as_posix().endswith('.github/workflows/v04-apply.yml'):
+                  return None
+              return original_unlink(path, *args, **kwargs)
+
+          Path.unlink = protected_unlink
+          module.main()
+          PY
       - name: Commit generated source changes
         run: |
           git config user.name 'github-actions[bot]'
