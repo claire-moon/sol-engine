@@ -37,7 +37,7 @@
 #define VER_MINOR 4
 #define VER_REVISION 0
 
-// This should always refer to the UZDoom version a derived port is based on and not reflect the derived port's version number!
+// This should always refer to the upstream compatibility version a derived port is based on and not reflect the derived port's version number!
 #define ENG_MAJOR 5
 #define ENG_MINOR 0
 #define ENG_REVISION 0
@@ -93,14 +93,15 @@
 #define SOL_RUNTIME_SLOT 21
 #define SOL_CONTENT_SLOT 22
 #define SOLDEFAULTS_CONTRACT 1
+#define SOL_GEOMETRY_CONTRACT 1
 // Set OPTIONALWAD to "" (null) to disable searching for it
 #define OPTIONALWAD "game_support.pk3"
 #define GZDOOM 1
 #define VR3D_ENABLED
 
 // More stuff that needs to be different for derivatives.
-#define GAMENAME "SOL Engine"
-#define WGAMENAME L"SOL Engine"
+#define GAMENAME "SOL! Engine"
+#define WGAMENAME L"SOL! Engine"
 #define GAMENAMELOWERCASE "sol-engine"
 #define APPID "io.github.claire_moon.solengine"
 #define QUERYIWADDEFAULT false
@@ -117,16 +118,3 @@
 #elif defined(__HAIKU__)
 #define GAME_DIR "config/settings/" GAMENAME
 #endif
-
-#define DEFAULT_DISCORD_APP_ID "1428620310302691349"
-
-const int SAVEPICWIDTH = 216;
-const int SAVEPICHEIGHT = 162;
-const int VID_MIN_WIDTH = 320;
-const int VID_MIN_HEIGHT = 200;
-
-const char *GetVersionString();
-const char *GetGitHash();
-const char *GetGitTime();
-const char *GetGitTag();
-int GetGitDistance();
