@@ -1,5 +1,6 @@
 #include "sdl2_display_backend.h"
 #include "sdl2_display_window.h"
+#include "systemdialogs/open_file_dialog.h"
 #include "window/window.h"
 #include <stdexcept>
 #include <SDL2/SDL_video.h>
