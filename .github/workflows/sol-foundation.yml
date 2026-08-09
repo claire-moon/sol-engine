@@ -121,6 +121,7 @@ jobs:
           test -s branding/sol/sol-northstar.svg
           grep -F 'fill="#ffffff"' branding/sol/sol-northstar.svg
           test ! -e branding/sol/sol-celestial-master.png
+          test ! -e wadsrc/static/graphics/bootlogo.png
       - name: Validate geometry contract
         run: |
           test -s docs/sol/non-euclidean.md
