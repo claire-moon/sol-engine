@@ -1,4 +1,4 @@
-name: SOL engine v0.4 contract
+name: SOL! engine v0.4 contract
 
 on:
   push:
@@ -52,7 +52,7 @@ jobs:
           bash -n tools/sol-*.sh tests/*.sh
           grep -F 'tools/sol-launcher.sh' tools/sol-run.sh
           ! grep -F -- '-file' tools/sol-launcher.sh
-          ! grep -F 'uzdoom' tools/sol-launcher.sh
+          ! grep -Fi 'uzdoom' tools/sol-launcher.sh
           grep -F 'sol-runtime-package.sh' tools/sol-package.sh
           grep -F 'sol-bundle.sh' tools/sol-package.sh
           ! grep -F 'sol-editor/tools/sol-bundle' tools/sol-bundle.sh
@@ -64,6 +64,7 @@ jobs:
           version = json.load(open('sol/version.json', encoding='utf-8'))
           manifest = json.load(open('sol/wadpack.json', encoding='utf-8'))
           defaults = json.load(open('sol/game/SOLDEFAULTS.json', encoding='utf-8'))
+          assert version['project'] == 'SOL! Engine'
           assert version['version'] == '0.4.0'
           assert version['bundle_version'] == '0.4.0'
           assert version['editor_contract'] == '0.2.0'
@@ -74,6 +75,7 @@ jobs:
           assert version['runtime_slot'] == 21
           assert version['content_slot'] == 22
           assert version['soldefaults_contract'] == 1
+          assert version['geometry_contract'] == 1
           assert manifest['schema'] == 2
           assert manifest['wadpack_contract'] == 3
           assert manifest['active_entries'] == 18
@@ -82,23 +84,25 @@ jobs:
           assert manifest['slots'][18]['id'] == 'precise-crosshair'
           assert manifest['slots'][19]['state'] == 'reserved'
           assert defaults['schema'] == 1 and defaults['contract'] == 1
-          assert defaults['project'] == 'SOL'
           assert {'renderer', 'mod', 'audio', 'hud', 'gameplay'} == set(defaults['categories'])
           PY
           test -s THIRD_PARTY.md
           grep -F 'not a relicensing mechanism' THIRD_PARTY.md
           grep -F 'PreciseCrosshair v1.5.0' THIRD_PARTY.md
-      - name: Validate native SOL v0.4 boot contract
+      - name: Validate native SOL! v0.4 boot contract
         run: |
           grep -F 'set( ZDOOM_EXE_NAME "sol-engine"' CMakeLists.txt
           grep -F 'project(SOLEngine VERSION 0.4.0)' CMakeLists.txt
           grep -F '#define VERSIONSTR "0.4.0"' src/version.h
+          grep -F '#define GAMENAME "SOL! Engine"' src/version.h
           grep -F '#define SOLPACK_SCHEMA 2' src/version.h
           grep -F '#define SOLBUNDLE_CONTRACT 2' src/version.h
           grep -F '#define SOL_WADPACK_CONTRACT 3' src/version.h
           grep -F '#define SOL_RUNTIME_SLOT 21' src/version.h
           grep -F '#define SOL_CONTENT_SLOT 22' src/version.h
           grep -F '#define SOLDEFAULTS_CONTRACT 1' src/version.h
+          grep -F '#define SOL_GEOMETRY_CONTRACT 1' src/version.h
+          grep -F 'map E1M1 "TESTMAP"' sol/game/MAPINFO
           grep -F '{ 19, "wadpack", "precise-crosshair"' src/d_main.cpp
           grep -F '{ 21, "runtime", "sol-runtime"' src/d_main.cpp
           grep -F '{ 22, "content", "sol-content"' src/d_main.cpp
@@ -108,13 +112,28 @@ jobs:
           grep -F 'SOL_ApplyCanonicalDefaults(false)' src/d_main.cpp
           grep -F 'D_AddFile(allwads, solbundle.GetChars()' src/d_main.cpp
           grep -F 'SOL_AllowProgressionWrite' src/sol/sol_run_state.cpp
+      - name: Validate procedural North Star startup
+        run: |
+          grep -F 'ParticleCount = 768' src/common/startscreen/startscreen_generic.cpp
+          grep -F 'DrawParticles' src/common/startscreen/startscreen_generic.cpp
+          ! grep -F '"BOOTLOGO"' src/common/startscreen/startscreen_generic.cpp
+          ! grep -F 'Theme::getAccent' src/common/startscreen/startscreen_generic.cpp
+          test -s branding/sol/sol-northstar.svg
+          grep -F 'fill="#ffffff"' branding/sol/sol-northstar.svg
+          test ! -e branding/sol/sol-celestial-master.png
+      - name: Validate geometry contract
+        run: |
+          test -s docs/sol/non-euclidean.md
+          grep -F 'Line_SetPortal' docs/sol/non-euclidean.md
+          grep -F 'PORTT_LINKED' docs/sol/non-euclidean.md
+          grep -F 'TESTMAP' docs/sol/non-euclidean.md
       - name: Test bundle contract 2 and wadpack contract 3
         run: bash tests/test-sol-bundle-v04.sh
       - name: Test native development launcher
         run: bash tests/test-sol-launcher.sh
       - name: Validate story foundation
         run: bash tests/test-sol-story.sh
-      - name: Package SOL-owned runtime component
+      - name: Package SOL!-owned runtime component
         run: bash tools/sol-runtime-package.sh
       - name: Inspect runtime component and defaults
         run: |
