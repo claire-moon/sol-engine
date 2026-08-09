@@ -17,11 +17,11 @@ find_engine() {
         "${SOL_ENGINE:-}" \
         "$launcher_dir/sol-engine" \
         "$launcher_dir/Release/sol-engine" \
-        "$launcher_dir/../build/sol-v030/sol-engine" \
         "$launcher_dir/../build/sol-local/sol-engine" \
         "$launcher_dir/../build/sol-local/Release/sol-engine" \
         "$launcher_dir/../build/sol-engine" \
-        "$launcher_dir/../build/Release/sol-engine"; do
+        "$launcher_dir/../build/Release/sol-engine" \
+        "$launcher_dir/../build/sol-v030/sol-engine"; do
         if [[ -n $candidate && -x $candidate ]]; then
             realpath "$candidate"
             return 0
