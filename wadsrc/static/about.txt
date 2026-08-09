@@ -1,34 +1,22 @@
-# UZDoom
+# SOL Engine
 
-https://zdoom.org/
-
-UZDoom is a modern, feature-rich source port for the classic game DOOM. A continuation of ZDoom and GZDoom, UZDoom enhances the original DOOM engine, providing advanced features like high-resolution graphics, dynamic lighting, 3D floors, and extensive modding support for modern operating systems.
-
-UZDoom is free and open-source software, built and maintained by a dedicated community of developers and enthusiasts.
+SOL Engine is the purpose-built runtime for SOL, a free modification that
+requires a user-owned copy of Doom or The Ultimate Doom. It is not an IWAD and
+does not include id Software's commercial game data.
 
 # Acknowledgments
 
-UZDoom would not be possible without the work of many people. We extend our immense gratitude to:
-
-- id Software for creating the original DOOM and releasing its source code.
-- Marisa Heit for her foundational work on ZDoom, and Christoph Oelckers for his work on GZDoom.
-- The countless modders, mappers, and artists in the DOOM community who continue to create amazing content.
-- All the contributors who have submitted code, reported bugs, translated, and helped improve the project over the years.
-
-The UZDoom Icon was designed by Carlos "Cardboard Marty" Sanchez, copyrighted to the the UZDoom team, licensed under Creative Commons BY-SA 4.0
+SOL Engine is based on UZDoom and preserves the copyright and license notices
+of ZDoom, GZDoom, UZDoom, their libraries, and their contributors. Thanks to id
+Software for releasing the Doom source code and to every upstream contributor
+whose work makes this engine possible.
 
 # Licensing
 
-Copyright 1993-1996 id Software
-Copyright 1999-2016 Marisa Heit
-Copyright 2002-2016 Christoph Oelckers
-Copyright 2017-2025 GZDoom Maintainers and Contributors
-Copyright 2025-2026 UZDoom Maintainers and Contributors
+The engine source is distributed under the GNU General Public License version
+3 or later, with inherited exceptions and third-party licenses documented in
+the source tree and packaged licenses archive.
 
-This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with this program.  If not, see https://www.gnu.org/licenses/
+Project repository: https://github.com/claire-moon/sol-engine
 
 # Contributors

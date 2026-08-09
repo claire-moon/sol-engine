@@ -1,9 +1,9 @@
-# Security Policy
+# Security policy
 
-## Supported Versions
+Only the latest SOL Engine development release is supported while the project
+is pre-1.0. Older snapshots may contain known vulnerabilities inherited from
+their upstream base or introduced during active development.
 
-Only the latest version of UZDoom is ever supported - older versions may have vulnerabilities, including older major versions. Legacy trees are maintained separately and sometimes by a different maintainer.
-
-## Reporting a Vulnerability
-
-https://github.com/UZDoom/UZDoom/security/advisories/new
+Report vulnerabilities privately through the
+[SOL Engine security advisory form](https://github.com/claire-moon/sol-engine/security/advisories/new).
+Do not open a public issue for an unpatched vulnerability.

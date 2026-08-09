@@ -1,7 +1,7 @@
-# UZDoom ZScript Source Code Documentation
+# SOL Engine ZScript Source Code Documentation
 
-This is the documentation for the internal ZScript code within the UZDoom
-engine, distributed with the engine via `uzdoom.pk3` - that's the stuff that
+This is the documentation for the internal ZScript code within the SOL Engine
+engine, distributed with the engine via `sol-engine.pk3` - that's the stuff that
 you, as a modder, need to interact with!
 
 These pages therefore serve as a reference for all of the API surface in the
@@ -31,7 +31,7 @@ tutorials and stuff outside the scope of ZScript.
 
 ## Contributing
 
-This site doesn't work like a wiki - it's totally generated from the UZDoom
+This site doesn't work like a wiki - it's totally generated from the SOL Engine
 GitHub repository with a tool called `zscdoc`. As such, contributing here
 requires contributing to the repository, by adding "doc-comments" into the
 source code.

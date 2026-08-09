@@ -993,7 +993,7 @@ typedef TArray<uint8_t> MemFile;
 
 static FString CreateCacheName(MapData *map, bool create)
 {
-	FString path = M_GetCachePath(create, "nodes");
+	FString path = M_GetCachePath(create, GAMENAMELOWERCASE "/nodes");
 	const char bytes = 16;
 	uint8_t md5[bytes];
 	map->GetChecksum(md5);
@@ -1196,7 +1196,7 @@ bool MapLoader::CheckCachedNodes(MapData *map)
 UNSAFE_CCMD(clearnodecache)
 {
 	FileSys::FileList list;
-	FString path = M_GetCachePath(false, "nodes");
+	FString path = M_GetCachePath(false, GAMENAMELOWERCASE "/nodes");
 	path += "/";
 
 	if (!FileSys::ScanDirectory(list, path.GetChars(), "*", false))

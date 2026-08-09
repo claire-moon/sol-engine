@@ -10,6 +10,7 @@ runtime_packager="$root/tools/sol-runtime-package.sh"
 if [[ -f $bundler ]]; then
     export SOL_ENGINE_ROOT="$root"
     export SOL_EDITOR_ROOT="$editor_root"
+    export SOL_VERSION_FILE="$root/sol/version.json"
     if bundle=$(SOL_BUNDLE_NO_SETUP=1 bash "$bundler" 2>/dev/null); then
         if [[ -f $bundle ]]; then
             test -f "$target" || {

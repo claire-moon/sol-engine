@@ -164,7 +164,7 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.ref }}
       - run: |
-          file=src/posix/freedesktop/org.zdoom.UZDoom.metainfo.xml
+          file=src/posix/freedesktop/io.github.claire_moon.solengine.metainfo.xml
           # These are here twice. First is to get nice output, second is to not make ci fail if network access fails
           flatpak-builder-lint --gha-format appstream $file || true
           AS_VALIDATE_NONET=1 flatpak-builder-lint appstream $file
@@ -195,7 +195,7 @@ jobs:
         config: &common_config
           - name: Windows
             os: windows-latest
-            build_opts: &msvc_opts -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DUSE_UPDATER=ON
+            build_opts: &msvc_opts -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DUSE_UPDATER=OFF
             build_opts_extra: ""
             deps_cmdline: &msvc_deps >-
               winget install --accept-source-agreements --verbose --exact --id=Ccache.Ccache
@@ -229,7 +229,11 @@ jobs:
           - name: Linux
             os: ubuntu-latest
             os_image: debian:oldstable # use debian/ubuntu distro with oldest glibc, which supports the needed toolchain
-            build_opts: &linux_opts
+            # AppImage installs support archives under /usr/share inside APPDIR.
+            # Compile that system path so BaseFileSearch's APPDIR prefix resolves
+            # sol-engine.pk3 from the mounted image; sol.pk3 remains beside the
+            # outer AppImage and is resolved separately by SOL's native boot.
+            build_opts: &linux_opts -DSYSTEMINSTALL=ON -DCMAKE_INSTALL_PREFIX=/usr -DINSTALL_PK3_PATH=share/games/sol-engine
             build_opts_extra: -DCMAKE_C_COMPILER=clang-19 -DCMAKE_CXX_COMPILER=clang++-19
             deps_cmdline: &linux_deps >-
               sudo apt-get -q install -y

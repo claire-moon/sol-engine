@@ -41,6 +41,7 @@
 #include "g_levellocals.h"
 #include "vm.h"
 #include "d_main.h"
+#include "sol/sol_run_state.h"
 
 uint8_t globalfreeze, globalchangefreeze;	// user's freeze state.
 
@@ -89,6 +90,8 @@ void cht_DoCheat (player_t *player, int cheat)
 	{
 		return;
 	}
+
+	SOL_MarkRunModified(SOLMOD_Cheat);
 
 	switch (cheat)
 	{

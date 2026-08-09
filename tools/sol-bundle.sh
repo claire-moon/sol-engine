@@ -12,4 +12,5 @@ fi
 
 export SOL_ENGINE_ROOT="$root"
 export SOL_EDITOR_ROOT="$editor_root"
+export SOL_VERSION_FILE=${SOL_VERSION_FILE:-"$root/sol/version.json"}
 exec bash "$bundler" "$@"

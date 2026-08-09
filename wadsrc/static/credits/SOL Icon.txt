@@ -1,0 +1,11 @@
+SOL celestial logo
+
+Original raster identity generated for SOL under the project owner's direction
+on 2026-08-08. The user-supplied visual reference was used only as design input
+and is not stored in or distributed by the SOL repositories.
+
+Source: branding/sol/sol-celestial-master.png
+License: GPL-3.0-or-later
+
+The packaged boot logo and platform icons are mechanical size/format
+derivatives of the shared master.

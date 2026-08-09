@@ -1,8 +1,12 @@
 #include "sdl2_display_backend.h"
 #include "sdl2_display_window.h"
+#include "systemdialogs/open_file_dialog.h"
 #include "window/window.h"
 #include <stdexcept>
 #include <SDL2/SDL_video.h>
+#ifdef USE_DBUS
+#include "window/dbus/dbus_open_file_dialog.h"
+#endif
 #ifndef WIN32
 #include <dlfcn.h>
 #endif
@@ -90,6 +94,17 @@ Size SDL2DisplayBackend::GetScreenSize()
 		throw std::runtime_error(std::string("Unable to get screen size:") + SDL_GetError());
 
 	return Size(rect.w / UIScale, rect.h / UIScale);
+}
+
+std::unique_ptr<OpenFileDialog> SDL2DisplayBackend::CreateOpenFileDialog(DisplayWindow* owner)
+{
+#ifdef USE_DBUS
+	// The SOL first-run IWAD picker is shown before a game window exists. The
+	// desktop portal accepts an empty parent handle for that case.
+	return std::make_unique<DBusOpenFileDialog>(std::string());
+#else
+	return DisplayBackend::CreateOpenFileDialog(owner);
+#endif
 }
 
 void* SDL2DisplayBackend::StartTimer(int timeoutMilliseconds, std::function<void()> onTimer)

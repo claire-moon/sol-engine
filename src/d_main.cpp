@@ -35,8 +35,13 @@
 #include <unistd.h>
 #endif
 
+#include <algorithm>
+#include <array>
+#include <cstdlib>
 #include <math.h>
 #include <assert.h>
+
+#include <Sha256.h>
 
 #include "a_dynlight.h"
 #include "am_map.h"
@@ -101,11 +106,13 @@
 #include "sbarinfo.h"
 #include "screenjob.h"
 #include "scriptutil.h"
+#include "serializer.h"
 #include "shiftstate.h"
 #include "st_start.h"
 #include "st_stuff.h"
 #include "startscreen.h"
 #include "swrenderer/r_swcolormaps.h"
+#include "sol/sol_run_state.h"
 #include "teaminfo.h"
 #include "texturemanager.h"
 #include "types.h"
@@ -124,6 +131,244 @@
 #endif // __unix__
 
 using namespace FileSys;
+
+struct SolBundleComponent
+{
+	const char* Kind;
+	const char* Id;
+	const char* Archive;
+	const char* RuntimeName;
+};
+
+static constexpr SolBundleComponent SolBundleComponents[] = {
+	{ "wadpack", "voxel-doom", "01-voxel-doom.wad", "01-voxel-doom-v2.4.pk3" },
+	{ "wadpack", "universal-weapon-sway", "02-universal-weapon-sway.wad", "02-universal-weapon-sway.pk3" },
+	{ "wadpack", "troo-cullers", "03-troo-cullers.wad", "03-troo-cullers-2.5.pk3" },
+	{ "wadpack", "tilt-plus-plus", "04-tilt-plus-plus.wad", "04-tilt-plus-plus.pk3" },
+	{ "wadpack", "relite", "05-relite.wad", "05-relite-0.7.3b.pk3" },
+	{ "wadpack", "angled-doom-lite", "06-angled-doom-lite.wad", "06-angled-doom-lite-1.2.1.pk3" },
+	{ "wadpack", "nashgore-next", "07-nashgore-next.wad", "07-nashgore-next.pk3" },
+	{ "wadpack", "nashgore-voxels", "08-nashgore-voxels.wad", "08-nashgore-voxels-official.pk3" },
+	{ "wadpack", "final-custom-doom", "09-final-custom-doom.wad", "09-final-custom-doom-v1.0.0-beta.pk3" },
+	{ "wadpack", "vanilla-essence", "10-vanilla-essence.wad", "10-vanilla-essence-4.3.pk3" },
+	{ "wadpack", "hq-psx-music", "11-hq-psx-music.wad", "11-hq-psx-music.wad" },
+	{ "wadpack", "psx-sfx", "12-psx-sfx.wad", "12-psx-sfx.wad" },
+	{ "wadpack", "flashlight-plus-plus", "13-flashlight-plus-plus.wad", "13-flashlight-plus-plus-v9_1.pk3" },
+	{ "wadpack", "alpha-hud", "14-alpha-hud.wad", "14-ww-alpha-hud.wad" },
+	{ "wadpack", "universal-ambience", "15-universal-ambience.wad", "15-universal-ambience.pk3" },
+	{ "wadpack", "cosmoambience-script-edited", "16-cosmoambience-script-edited.wad", "16-cosmoambience-script-edited.pk3" },
+	{ "wadpack", "ambient-decorations", "17-ambient-decorations.wad", "17-ambient-decorations.pk3" },
+	{ "wadpack", "targetspy", "18-targetspy.wad", "18-targetspy-v3.1.0.pk3" },
+	{ "runtime", "sol-runtime", "19-sol-runtime.wad", "sol-v0.3.0.pk3" },
+	{ "content", "sol-content", "20-sol-content.wad", "sol-e1m1-v0.2.0.pk3" },
+};
+
+static FString HashSolBundleEntry(FResourceFile* bundle, int entry, const FString& path)
+{
+	FileReader reader = bundle->GetEntryReader(entry, READER_NEW, 0);
+	if (!reader.isOpen())
+	{
+		I_FatalError("Cannot read %s from mandatory SOL runtime bundle %s",
+			bundle->getName(entry), path.GetChars());
+	}
+
+	CSha256 sha;
+	Sha256_Init(&sha);
+	std::array<uint8_t, 64 * 1024> buffer;
+	auto remaining = reader.GetLength();
+	while (remaining > 0)
+	{
+		auto amount = std::min<FileReader::Size>(remaining,
+			static_cast<FileReader::Size>(buffer.size()));
+		auto count = reader.Read(buffer.data(), amount);
+		if (count != amount)
+		{
+			I_FatalError("Cannot completely read %s from mandatory SOL runtime bundle %s",
+				bundle->getName(entry), path.GetChars());
+		}
+		Sha256_Update(&sha, buffer.data(), static_cast<size_t>(count));
+		remaining -= count;
+	}
+
+	uint8_t digest[SHA256_DIGEST_SIZE];
+	Sha256_Final(&sha, digest);
+	char text[SHA256_DIGEST_SIZE * 2 + 1];
+	static constexpr char Hex[] = "0123456789abcdef";
+	for (unsigned i = 0; i < SHA256_DIGEST_SIZE; ++i)
+	{
+		text[i * 2] = Hex[digest[i] >> 4];
+		text[i * 2 + 1] = Hex[digest[i] & 15];
+	}
+	text[sizeof(text) - 1] = 0;
+	return text;
+}
+
+static bool IsSolSHA256(const FString& value)
+{
+	if (value.Len() != SHA256_DIGEST_SIZE * 2) return false;
+	for (size_t index = 0; index < value.Len(); ++index)
+	{
+		const char c = value[index];
+		if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') ||
+			(c >= 'A' && c <= 'F'))) return false;
+	}
+	return true;
+}
+
+static FString FindSolBundlePath()
+{
+	FString adjacent = progdir + SOLBUNDLE;
+	if (FileExists(adjacent)) return adjacent;
+
+#ifdef __linux__
+	// AppImage exposes the path to its outer, user-visible executable. The
+	// mounted AppDir is read-only, so SOL's local-only sidecar belongs beside
+	// that outer file while preserving the same deterministic adjacency rule.
+	const char* appImage = getenv("APPIMAGE");
+	if (appImage != nullptr && *appImage != 0)
+	{
+		FString outerAdjacent = ExtractFilePath(appImage) + SOLBUNDLE;
+		if (FileExists(outerAdjacent)) return outerAdjacent;
+	}
+#endif
+
+	return adjacent;
+}
+
+static void ValidateSolBundle(const FString& path)
+{
+	std::unique_ptr<FResourceFile> bundle(FResourceFile::OpenResourceFile(path.GetChars(), true));
+	if (!bundle)
+	{
+		I_FatalError("Cannot open mandatory SOL runtime bundle %s", path.GetChars());
+	}
+
+	int manifestEntry = bundle->FindEntry("SOLPACK.json");
+	int creditsEntry = bundle->FindEntry("THIRD_PARTY.md");
+	if (manifestEntry < 0 || creditsEntry < 0)
+	{
+		I_FatalError(
+			"%s is not a valid SOL runtime bundle: SOLPACK.json or THIRD_PARTY.md is missing",
+			path.GetChars());
+	}
+
+	auto data = bundle->Read(manifestEntry);
+	FSerializer manifest;
+	manifest.mLumpName = "SOLPACK.json";
+	if (!manifest.OpenReader(data.string(), data.size()))
+	{
+		I_FatalError("Cannot parse SOLPACK.json in %s", path.GetChars());
+	}
+
+	FString project;
+	FString version;
+	FString credits;
+	FString creditsHash;
+	int schema = 0;
+	int bundleContract = 0;
+	int wadpackContract = 0;
+	int wadpackEntries = 0;
+	std::array<FString, countof(SolBundleComponents)> componentHashes;
+	manifest("project", project)
+		("version", version)
+		("schema", schema)
+		("bundle_contract", bundleContract)
+		("wadpack_contract", wadpackContract)
+		("wadpack_entries", wadpackEntries)
+		("credits", credits)
+		("credits_sha256", creditsHash);
+
+	unsigned componentCount = 0;
+	if (manifest.BeginArray("components"))
+	{
+		componentCount = manifest.ArraySize();
+		for (unsigned index = 0; index < componentCount; ++index)
+		{
+			if (!manifest.BeginObject(nullptr))
+			{
+				I_FatalError("%s has a malformed SOLPACK component table", path.GetChars());
+			}
+
+			int order = 0;
+			FString kind;
+			FString id;
+			FString archive;
+			FString runtimeName;
+			FString hash;
+			manifest("order", order)
+				("kind", kind)
+				("id", id)
+				("archive", archive)
+				("runtime_name", runtimeName)
+				("sha256", hash);
+			manifest.EndObject();
+
+			if (index >= countof(SolBundleComponents))
+			{
+				I_FatalError("%s declares too many SOLPACK components", path.GetChars());
+			}
+			const auto& expected = SolBundleComponents[index];
+			if (order != static_cast<int>(index + 1) || kind.Compare(expected.Kind) != 0 ||
+				id.Compare(expected.Id) != 0 || archive.Compare(expected.Archive) != 0 ||
+				runtimeName.Compare(expected.RuntimeName) != 0 || !IsSolSHA256(hash))
+			{
+				I_FatalError("%s has an incompatible SOLPACK component at slot %u",
+					path.GetChars(), index + 1);
+			}
+			componentHashes[index] = hash;
+		}
+		manifest.EndArray();
+	}
+
+	if (project.Compare("SOL") != 0 || version.Compare(VERSIONSTR) != 0 ||
+		schema != SOLPACK_SCHEMA ||
+		bundleContract != SOLBUNDLE_CONTRACT ||
+		wadpackContract != SOL_WADPACK_CONTRACT ||
+		wadpackEntries != SOL_WADPACK_ENTRIES ||
+		componentCount != SOLBUNDLE_COMPONENTS ||
+		componentCount != countof(SolBundleComponents) ||
+		credits.Compare("THIRD_PARTY.md") != 0 || !IsSolSHA256(creditsHash))
+	{
+		I_FatalError(
+			"%s has an incompatible SOLPACK contract "
+			"(schema %d, bundle %d, wadpack %d/%d, components %u)",
+			path.GetChars(), schema, bundleContract, wadpackContract,
+			wadpackEntries, componentCount);
+	}
+
+	// Full-path archive entries are normalized and alphabetized by
+	// FResourceFile::PostProcessArchive before they reach this validator. The
+	// numbered carrier names therefore define both the verifiable order here and
+	// the recursive mount order used by the engine. SOLPACK and THIRD_PARTY sort
+	// after the 01-20 carriers.
+	if (bundle->EntryCount() != static_cast<int>(componentCount + 2) ||
+		manifestEntry != static_cast<int>(componentCount) ||
+		creditsEntry != static_cast<int>(componentCount + 1))
+	{
+		I_FatalError("%s has unexpected, missing, or misordered root entries", path.GetChars());
+	}
+
+	if (HashSolBundleEntry(bundle.get(), creditsEntry, path).CompareNoCase(creditsHash) != 0)
+	{
+		I_FatalError("%s has a changed THIRD_PARTY.md attribution file", path.GetChars());
+	}
+	for (unsigned index = 0; index < componentCount; ++index)
+	{
+		const auto& expected = SolBundleComponents[index];
+		const int entry = bundle->FindEntry(expected.Archive);
+		if (entry != static_cast<int>(index) ||
+			stricmp(bundle->getName(entry), expected.Archive) != 0)
+		{
+			I_FatalError("%s has a missing or misordered carrier at slot %u",
+				path.GetChars(), index + 1);
+		}
+
+		if (HashSolBundleEntry(bundle.get(), entry, path).CompareNoCase(componentHashes[index]) != 0)
+		{
+			I_FatalError("%s has a changed carrier at slot %u", path.GetChars(), index + 1);
+		}
+	}
+}
 
 EXTERN_CVAR(Bool, hud_althud)
 EXTERN_CVAR(Int, vr_mode)
@@ -325,6 +570,8 @@ FARG(debug, "", "", "",
 
 EXTERN_FARG(join);
 EXTERN_FARG(host);
+EXTERN_FARG(config);
+EXTERN_FARG(blockmap);
 
 extern const char * const BACKEND;
 
@@ -490,10 +737,10 @@ CUSTOM_CVAR (String, vid_cursor, "None", CVAR_ARCHIVE | CVAR_NOINITCALL)
 }
 
 // Controlled by startup dialog
-CVAR(Bool, disableautoload, false, CVAR_ARCHIVE | CVAR_NOINITCALL | CVAR_GLOBALCONFIG)
-CVAR(Bool, autoloadbrightmaps, true, CVAR_ARCHIVE | CVAR_NOINITCALL | CVAR_GLOBALCONFIG)
-CVAR(Bool, autoloadlights, true, CVAR_ARCHIVE | CVAR_NOINITCALL | CVAR_GLOBALCONFIG)
-CVAR(Bool, autoloadwidescreen, true, CVAR_ARCHIVE | CVAR_NOINITCALL | CVAR_GLOBALCONFIG)
+CVAR(Bool, disableautoload, true, CVAR_ARCHIVE | CVAR_NOINITCALL | CVAR_GLOBALCONFIG)
+CVAR(Bool, autoloadbrightmaps, false, CVAR_ARCHIVE | CVAR_NOINITCALL | CVAR_GLOBALCONFIG)
+CVAR(Bool, autoloadlights, false, CVAR_ARCHIVE | CVAR_NOINITCALL | CVAR_GLOBALCONFIG)
+CVAR(Bool, autoloadwidescreen, false, CVAR_ARCHIVE | CVAR_NOINITCALL | CVAR_GLOBALCONFIG)
 CVAR(Bool, r_debug_disable_vis_filter, false, 0)
 CVAR(Int, vid_showpalette, 0, 0)
 
@@ -2051,6 +2298,20 @@ static void GetCmdLineFiles(std::vector<FileSys::ResourceName>& wadfiles, bool o
 	}
 }
 
+static void RemoveLegacySolBundleArguments(std::vector<FileSys::ResourceName>& files)
+{
+	auto firstRemoved = std::remove_if(files.begin(), files.end(), [](const auto& file)
+	{
+		return ExtractFileBase(file.Name.c_str(), true).CompareNoCase(SOLBUNDLE) == 0;
+	});
+	if (firstRemoved != files.end())
+	{
+		files.erase(firstRemoved, files.end());
+		Printf("Ignoring legacy -file %s argument; SOL Engine mounts the adjacent validated bundle natively.\n",
+			SOLBUNDLE);
+	}
+}
+
 static FString ParseGameInfo(std::vector<FileSys::ResourceName> &pwads, const char *fn, const char *data, int size)
 {
 	FScanner sc;
@@ -2255,6 +2516,7 @@ static void D_DoomInit()
 
 static void AddAutoloadFiles(const char *autoname, std::vector<FileSys::ResourceName>& allwads)
 {
+	const size_t initialCount = allwads.size();
 	LumpFilterIWAD.Format("%s.", autoname);	// The '.' is appened to simplify parsing the string
 
 	// [SP] Dialog reaction - load lights.pk3 and brightmaps.pk3 based on user choices
@@ -2321,6 +2583,11 @@ static void AddAutoloadFiles(const char *autoname, std::vector<FileSys::Resource
 			D_AddConfigFiles(allwads, file.GetChars(), "*.wad", GameConfig, true);
 			lastpos = len;
 		}
+	}
+
+	if (allwads.size() != initialCount)
+	{
+		SOL_MarkRunModified(SOLMOD_ExtraFiles);
 	}
 }
 
@@ -3455,6 +3722,10 @@ static int D_InitGame(const FIWADInfo* iwad_info, std::vector<FileSys::ResourceN
 	FArgs *execFiles = new FArgs;
 	if (!(Args->CheckParm(FArg_noautoexec)))
 		GameConfig->AddAutoexec(execFiles, gameinfo.ConfigName.GetChars());
+	if (execFiles->NumArgs() > 0)
+	{
+		SOL_MarkRunModified(SOLMOD_Developer);
+	}
 	exec = D_MultiExec(execFiles, NULL);
 	delete execFiles;
 
@@ -3468,7 +3739,12 @@ static int D_InitGame(const FIWADInfo* iwad_info, std::vector<FileSys::ResourceN
 
 	if (exec != NULL)
 	{
+		const size_t initialCount = allwads.size();
 		exec->AddPullins(allwads, GameConfig);
+		if (allwads.size() != initialCount)
+		{
+			SOL_MarkRunModified(SOLMOD_ExtraFiles);
+		}
 	}
 
 	if (!batchrun) Printf ("W_Init: Init WADfiles.\n");
@@ -4088,6 +4364,7 @@ static int D_DoomMain_Internal (void)
 
 	do
 	{
+		SOL_ResetRunState();
 		PClass::StaticInit();
 		PType::StaticInit();
 
@@ -4107,6 +4384,45 @@ static int D_DoomMain_Internal (void)
 
 		std::vector<FileSys::ResourceName> pwads;
 		GetCmdLineFiles(pwads, false);
+		RemoveLegacySolBundleArguments(pwads);
+		if (Args->CheckParm(FArg_deh) || Args->CheckParm(FArg_bex))
+		{
+			SOL_MarkRunModified(SOLMOD_Dehacked);
+		}
+		if (Args->CheckParm(FArg_warp) || Args->CheckParm(FArg_map))
+		{
+			SOL_MarkRunModified(SOLMOD_StartupWarp);
+		}
+		if (Args->CheckParm(FArg_skill) || Args->CheckParm(FArg_episode))
+		{
+			SOL_MarkRunModified(SOLMOD_StartupWarp);
+		}
+		for (int argIndex = 1; argIndex < Args->NumArgs(); ++argIndex)
+		{
+			const char* argument = Args->GetArg(argIndex);
+			if (argument != nullptr && argument[0] == '+')
+			{
+				SOL_MarkRunModified(SOLMOD_Developer);
+				break;
+			}
+		}
+		if (Args->CheckParm(FArg_devparm) || Args->CheckParm(FArg_norun) ||
+			Args->CheckParm(FArg_dumpjit) || Args->CheckParm(FArg_debug) ||
+			Args->CheckParm(FArg_noautoload) || Args->CheckParm(FArg_noautoexec) ||
+			Args->CheckParm(FArg_exec) || Args->CheckParm(FArg_nomonsters) ||
+			Args->CheckParm(FArg_respawn) || Args->CheckParm(FArg_fast) ||
+			Args->CheckParm(FArg_turbo) || Args->CheckParm(FArg_host) ||
+			Args->CheckParm(FArg_join) || Args->CheckParm(FArg_deathmatch) ||
+			Args->CheckParm(FArg_altdeath) || Args->CheckParm(FArg_coop) ||
+			Args->CheckParm(FArg_timer) || Args->CheckParm(FArg_avg) ||
+			Args->CheckParm(FArg_rngseed) || Args->CheckParm(FArg_compatmode) ||
+			Args->CheckParm(FArg_xlat) || Args->CheckParm(FArg_bots) ||
+			Args->CheckParm(FArg_config) || Args->CheckParm(FArg_blockmap) ||
+			Args->CheckParm(FArg_record) || Args->CheckParm(FArg_playdemo) ||
+			Args->CheckParm(FArg_timedemo))
+		{
+			SOL_MarkRunModified(SOLMOD_Developer);
+		}
 		FString iwad = CheckGameInfo(pwads);
 
 		// The IWAD selection dialogue does not show in fullscreen so if the
@@ -4116,12 +4432,26 @@ static int D_DoomMain_Internal (void)
 		std::vector<FileSys::ResourceName> allwads;
 
 		const FIWADInfo *iwad_info = iwad_man->FindIWAD(allwads, iwad.GetChars(), basewad.GetChars(), optionalwad.GetChars());
+		if (!iwad_info) return 0;
+
+		FString solbundle = FindSolBundlePath();
+		if (!FileExists(solbundle))
+		{
+			I_FatalError("Cannot find mandatory SOL runtime bundle %s beside the executable",
+				SOLBUNDLE);
+		}
+		ValidateSolBundle(solbundle);
+		D_AddFile(allwads, solbundle.GetChars(), true, -1, GameConfig, false);
 
 		GetCmdLineFiles(pwads, false); // [RL0] Update with files passed on the launcher extra args
 		// For now these need to remain verifiable over the network.
 		GetCmdLineFiles(pwads, true);
+		RemoveLegacySolBundleArguments(pwads);
+		if (!pwads.empty())
+		{
+			SOL_MarkRunModified(SOLMOD_ExtraFiles);
+		}
 
-		if (!iwad_info) return 0;	// user exited the selection popup via cancel button.
 		if ((iwad_info->flags & GI_SHAREWARE) && pwads.size() > 0)
 		{
 			I_FatalError ("You cannot -file or -optfile with the shareware version. Register!");
@@ -4174,6 +4504,7 @@ static int D_DoomMain_Internal (void)
 		delete iwad_man;	// now we won't need this anymore
 		iwad_man = NULL;
 		if (ret != 0) return ret;
+		SOL_CaptureRunBaseline();
 
 		D_DoAnonStats();
 		I_UpdateWindowTitle();

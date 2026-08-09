@@ -1,4 +1,4 @@
-name: SOL story foundation
+name: SOL engine identity
 
 on:
   push:
@@ -10,11 +10,14 @@ on:
       - 'docs/sol/**'
       - 'branding/sol/**'
       - 'branding/misc/appicon*'
-      - 'src/common/filesystem/**'
+      - 'CMakeLists.txt'
+      - 'src/**'
+      - 'libraries/ZWidget/**'
+      - 'wadsrc/**'
       - 'SOL.md'
       - 'ROADMAP.md'
       - 'THIRD_PARTY.md'
-      - '.github/workflows/sol-foundation.yml'
+      - '.github/workflows/**'
   pull_request:
     paths:
       - 'sol/**'
@@ -23,11 +26,14 @@ on:
       - 'docs/sol/**'
       - 'branding/sol/**'
       - 'branding/misc/appicon*'
-      - 'src/common/filesystem/**'
+      - 'CMakeLists.txt'
+      - 'src/**'
+      - 'libraries/ZWidget/**'
+      - 'wadsrc/**'
       - 'SOL.md'
       - 'ROADMAP.md'
       - 'THIRD_PARTY.md'
-      - '.github/workflows/sol-foundation.yml'
+      - '.github/workflows/**'
 
 permissions:
   contents: read
@@ -42,7 +48,8 @@ jobs:
           python3 -m json.tool sol/version.json >/dev/null
           bash -n tools/sol-*.sh tests/*.sh
           grep -F 'tools/sol-launcher.sh' tools/sol-run.sh
-          grep -F 'sol.pk3' tools/sol-launcher.sh
+          ! grep -F -- '-file' tools/sol-launcher.sh
+          ! grep -F 'uzdoom' tools/sol-launcher.sh
           grep -F 'sol-runtime-package.sh' tools/sol-package.sh
           grep -F 'sol-bundle.sh' tools/sol-package.sh
           grep -F 'sol-bundle.sh' tools/sol-bundle.sh
@@ -53,7 +60,8 @@ jobs:
           import json
           with open('sol/version.json', encoding='utf-8') as f:
               version = json.load(f)
-          assert version['version'] == '0.2.0'
+          assert version['version'] == '0.3.0'
+          assert version['bundle_version'] == '0.3.0'
           assert version['editor_contract'] == '0.2.0'
           assert version['wadpack_contract'] == 2
           assert version['wadpack_entries'] == 18
@@ -64,13 +72,40 @@ jobs:
           PY
           test -s THIRD_PARTY.md
           grep -F 'not a relicensing mechanism' THIRD_PARTY.md
+      - name: Validate native SOL identity and boot contract
+        run: |
+          grep -F 'set( ZDOOM_EXE_NAME "sol-engine"' CMakeLists.txt
+          grep -F 'project(SOLEngine VERSION 0.3.0)' CMakeLists.txt
+          grep -F '#define VERSIONSTR "0.3.0"' src/version.h
+          grep -F '#define ENG_MAJOR 5' src/version.h
+          grep -F '#define BASEWAD "sol-engine.pk3"' src/version.h
+          grep -F '#define SOLBUNDLE "sol.pk3"' src/version.h
+          grep -F '#define GAMENAME "SOL Engine"' src/version.h
+          grep -F '#define GAMENAMELOWERCASE "sol-engine"' src/version.h
+          grep -F '#define APPID "io.github.claire_moon.solengine"' src/version.h
+          grep -F '#define QUERYIWADDEFAULT false' src/version.h
+          grep -F '<id>io.github.claire_moon.solengine</id>' src/posix/freedesktop/io.github.claire_moon.solengine.metainfo.xml
+          grep -F 'StartupWMClass=io.github.claire_moon.solengine' src/posix/freedesktop/io.github.claire_moon.solengine.desktop
+          grep -F 'build_opts: &linux_opts -DSYSTEMINSTALL=ON -DCMAKE_INSTALL_PREFIX=/usr -DINSTALL_PK3_PATH=share/games/sol-engine' .github/workflows/continuous_integration.yml
+          grep -F 'ValidateSolBundle(solbundle)' src/d_main.cpp
+          grep -F 'manifestEntry != static_cast<int>(componentCount)' src/d_main.cpp
+          grep -F 'bundle->FindEntry(expected.Archive)' src/d_main.cpp
+          grep -F 'D_AddFile(allwads, solbundle.GetChars()' src/d_main.cpp
+          grep -F 'MakeVersion(ENG_MAJOR, ENG_MINOR, ENG_REVISION)' src/common/scripting/frontend/zcc_parser.cpp
+          grep -F 'doom.id.doom1.' src/d_iwad.cpp
+          grep -F 'SOL Engine - Locate DOOM.WAD or DOOMU.WAD' src/d_iwad.cpp
+          grep -F 'SOL_AllowProgressionWrite' src/sol/sol_run_state.cpp
+          grep -F 'sol_run_modifications' src/g_game.cpp
+          grep -F 'SOLMOD_ExtraFiles' src/d_main.cpp
+          grep -F 'SOLMOD_Cheat' src/m_cheat.cpp
+          grep -F 'SOLMOD_ConsoleTravel' src/g_level.cpp
       - name: Validate native embedded archive support
         run: |
           grep -F 'const char *c = strstr(FullName, ".wad")' src/common/filesystem/source/resourcefile.cpp
           grep -F 'Entries[entry].Flags |= RESFF_EMBEDDED' src/common/filesystem/source/resourcefile.cpp
           grep -F 'if (flags & RESFF_EMBEDDED)' src/common/filesystem/source/filesystem.cpp
           grep -F 'AddFile(path.c_str(), &embedded, filter, Printf, optional)' src/common/filesystem/source/filesystem.cpp
-      - name: Test self-contained launcher
+      - name: Test native development launcher
         run: bash tests/test-sol-launcher.sh
       - name: Validate story foundation
         run: bash tests/test-sol-story.sh
@@ -94,7 +129,7 @@ jobs:
         run: bash tools/sol-runtime-package.sh
       - name: Inspect runtime component and branding
         run: |
-          archive=$(find build/sol -maxdepth 1 -name 'sol-v0.2.0.pk3' -print -quit)
+          archive=$(find build/sol -maxdepth 1 -name 'sol-v0.3.0.pk3' -print -quit)
           test -n "$archive"
           unzip -t "$archive"
           unzip -Z1 "$archive" | grep -Fx ZSCRIPT
@@ -103,6 +138,11 @@ jobs:
           unzip -Z1 "$archive" | grep -Fx zscript/sol/story_state.zs
           unzip -Z1 "$archive" | grep -Fx zscript/sol/bootstrap.zs
           unzip -p "$archive" ZSCRIPT | grep -Fx '#include "zscript/sol/story_state.zs"'
-          test -s branding/sol/sol-icon-master.png
+          test -s branding/sol/sol-celestial-master.png
           test -s branding/misc/appicon.png
           test -s branding/misc/appicon.16.png
+          test -s wadsrc/static/graphics/bootlogo.png
+          test -s src/win32/icon1.ico
+          test -s branding/sol/sol-engine.iconset/icon_16x16.png
+          test -s branding/sol/sol-engine.iconset/icon_512x512@2x.png
+          grep -F '`sol-celestial-master.png` is the original generated raster master' branding/sol/README.md

@@ -48,7 +48,7 @@ BEGIN
     "//\r\n"
     "// Version\r\n"
     "//\r\n"
-    "#define RC_FILEVERSION2 GIT_DESCRIPTION\r\n"
+    "#define RC_FILEVERSION2 VERSIONSTR\r\n"
     "\r\n"
     "VS_VERSION_INFO VERSIONINFO\r\n"
     " FILEVERSION RC_FILEVERSION\r\n"
@@ -69,14 +69,14 @@ BEGIN
     "        BEGIN\r\n"
     "            VALUE ""Comments"", ""Thanks to id Software for creating DOOM and then releasing the source code. Thanks also to TeamTNT for creating BOOM, which ZDoom is partially based on. Includes code based on the Cajun Bot 0.97 by Martin Collberg.""\r\n"
     "            VALUE ""CompanyName"", "" ""\r\n"
-    "            VALUE ""FileDescription"", ""UZDoom""\r\n"
+    "            VALUE ""FileDescription"", ""SOL Engine""\r\n"
     "            VALUE ""FileVersion"", RC_FILEVERSION2\r\n"
-    "            VALUE ""InternalName"", ""UZDoom""\r\n"
-    "            VALUE ""LegalCopyright"", ""Copyright © 1993-1996 id Software, 1998-2016 Marisa Heit, 2002-2016 Christoph Oelckers, , 2017-2025 GZDoom Maintainers and Contributors, 2025-2026 UZDoom Maintainers and Contributors.""\r\n"
+    "            VALUE ""InternalName"", ""SOL Engine""\r\n"
+    "            VALUE ""LegalCopyright"", ""Copyright © SOL contributors and upstream engine contributors; see licenses.zip.""\r\n"
     "            VALUE ""LegalTrademarks"", ""DoomR is a Registered Trademark of id Software, Inc.""\r\n"
-    "            VALUE ""OriginalFilename"", ""uzdoom.exe""\r\n"
-    "            VALUE ""ProductName"", ""UZDoom""\r\n"
-    "            VALUE ""ProductVersion"", GIT_VERSION\r\n"
+    "            VALUE ""OriginalFilename"", ""sol-engine.exe""\r\n"
+    "            VALUE ""ProductName"", ""SOL Engine""\r\n"
+    "            VALUE ""ProductVersion"", VERSIONSTR\r\n"
     "        END\r\n"
     "    END\r\n"
     "    BLOCK ""VarFileInfo""\r\n"
@@ -206,7 +206,7 @@ END
 IDD_CRASHDIALOG DIALOGEX 0, 0, 415, 308
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTROLPARENT | WS_EX_APPWINDOW
-CAPTION "UZDoom Very Fatal Error"
+CAPTION "SOL Engine Very Fatal Error"
 FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
     CONTROL         "",IDC_CRASHTAB,"SysTabControl32",WS_TABSTOP,4,4,404,280
@@ -295,7 +295,7 @@ END
 //
 // Version
 //
-#define RC_FILEVERSION2 GIT_DESCRIPTION
+#define RC_FILEVERSION2 VERSIONSTR
 
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION RC_FILEVERSION
@@ -316,14 +316,14 @@ BEGIN
         BEGIN
             VALUE "Comments", "Thanks to id Software for creating DOOM and then releasing the source code. Thanks also to TeamTNT for creating BOOM, which ZDoom is partially based on. Includes code based on the Cajun Bot 0.97 by Martin Collberg."
             VALUE "CompanyName", " "
-            VALUE "FileDescription", "UZDoom " GIT_DESCRIPTION
+            VALUE "FileDescription", "SOL Engine"
             VALUE "FileVersion", RC_FILEVERSION2
-            VALUE "InternalName", "UZDoom"
-            VALUE "LegalCopyright", "Copyright © 1993-1996 id Software, 1998-2016 Marisa Heit, 2002-2016 Christoph Oelckers, 2017-2025 GZDoom Maintainers and Contributors, 2025-2026 UZDoom Maintainers and Contributors."
+            VALUE "InternalName", "SOL Engine"
+            VALUE "LegalCopyright", "Copyright © SOL contributors and upstream engine contributors; see licenses.zip."
             VALUE "LegalTrademarks", "Doom® is a Registered Trademark of id Software, Inc."
-            VALUE "OriginalFilename", "uzdoom.exe"
-            VALUE "ProductName", "UZDoom"
-            VALUE "ProductVersion", GIT_DESCRIPTION
+            VALUE "OriginalFilename", "sol-engine.exe"
+            VALUE "ProductName", "SOL Engine"
+            VALUE "ProductVersion", VERSIONSTR
         END
     END
     BLOCK "VarFileInfo"

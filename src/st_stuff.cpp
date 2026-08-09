@@ -29,6 +29,7 @@
 #include "g_level.h"
 #include "g_levellocals.h"
 #include "d_main.h"
+#include "sol/sol_run_state.h"
 
 EXTERN_CVAR (Bool, ticker);
 EXTERN_CVAR (Int, am_cheat);
@@ -371,6 +372,7 @@ static bool CheatCheckList (event_t *ev, cheatseq_t *cheats, int numcheats)
 			{
 				if (cheats->DontCheck || !CheckCheatmode ())
 				{
+					SOL_MarkRunModified(SOLMOD_Cheat);
 					eat |= cheats->Handler (cheats);
 				}
 			}

@@ -150,6 +150,12 @@ bool DBusOpenFolderDialog::Show()
 		}
 	}
 	dbus_bus_remove_match(connection, rule.c_str(), &error);
+	if (signalmsg == nullptr)
+	{
+		dbus_connection_unref(connection);
+		dbus_error_free(&error);
+		return false;
+	}
 
 	// Read the response
 
@@ -259,15 +265,24 @@ void DBusOpenFolderDialog::SetTitle(const std::string& newtitle)
 
 std::string DBusOpenFolderDialog::unescapeUri(const std::string& s)
 {
-	// This needs to be much more advanced to support any kind of uri. Why did they have to pass it as an uri!? idiots.
+	auto hexValue = [](char c) -> int
+	{
+		if (c >= '0' && c <= '9') return c - '0';
+		if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+		if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+		return -1;
+	};
+
 	std::string result;
 	result.reserve(s.size());
 	size_t i = 0;
 	while (i < s.length())
 	{
-		if (s[i] == '%' && i + 2 < s.length() && s[i + 1] == '2' && s[i + 2] == '0')
+		const int high = i + 2 < s.length() && s[i] == '%' ? hexValue(s[i + 1]) : -1;
+		const int low = high >= 0 ? hexValue(s[i + 2]) : -1;
+		if (high >= 0 && low >= 0)
 		{
-			result += ' ';
+			result += static_cast<char>((high << 4) | low);
 			i += 3;
 		}
 		else
