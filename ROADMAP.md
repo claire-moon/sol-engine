@@ -40,7 +40,7 @@ The next phase does not begin until the preceding default branch is green.
   redistribution permission is documented. Free/noncommercial distribution is
   not a substitute for permission.
 
-## Active — `v0.3.0`: SOL engine identity and native boot
+## Completed — `v0.3.0`: SOL engine identity and native boot
 
 Goal: make SOL a distinctly named engine that automatically boots its mandatory
 bundle without wrapper-supplied `-file sol.pk3`.
@@ -58,7 +58,7 @@ bundle without wrapper-supplied `-file sol.pk3`.
 Exit gate: clean Windows and Linux installations launch through `sol-engine`,
 never require `-file sol.pk3`, and do not read or write UZDoom user state.
 
-## `v0.4.0`: bundle authority and canonical defaults
+## Active — `v0.4.0`: bundle authority and canonical defaults
 
 Goal: make the engine repository authoritative for resource locking, bundle
 construction, provenance, and the reproducible gameplay configuration.
