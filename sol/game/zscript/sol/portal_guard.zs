@@ -10,7 +10,7 @@ class SolPlayer : DoomPlayer
         if (crossing == null ||
             crossing.Special != 156 ||
             crossing.Args[2] != LinePortal.PORTT_LINKED ||
-            crossing.Args[4] != 1)
+            (crossing.Args[0] != 9001 && crossing.Args[0] != 9002))
         {
             return true;
         }
