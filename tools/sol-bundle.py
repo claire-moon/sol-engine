@@ -15,6 +15,9 @@ from typing import Any, Iterable
 SCHEMA = 2
 BUNDLE_CONTRACT = 2
 WADPACK_CONTRACT = 3
+WADPACK_ENTRIES = 18
+RUNTIME_SLOT = 21
+CONTENT_SLOT = 22
 VALID_STATES = {'active', 'retired', 'reserved'}
 EPOCH = (1980, 1, 1, 0, 0, 0)
 BINARY_COMPRESSION = zipfile.ZIP_STORED
@@ -50,6 +53,10 @@ def active_items(manifest: dict[str, Any]) -> list[dict[str, Any]]:
     return [item for item in manifest['slots'] if item['state'] == 'active']
 
 
+def canonical_component_names(version: str) -> tuple[str, str]:
+    return f'sol-v{version}.pk3', f'sol-e1m1-v{version}.pk3'
+
+
 def validate_manifest(manifest: dict[str, Any]) -> None:
     if manifest.get('schema') != SCHEMA or manifest.get('wadpack_contract') != WADPACK_CONTRACT:
         die('Unsupported SOL wadpack manifest')
@@ -61,7 +68,9 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
     active = active_items(manifest)
     if len(active) != manifest.get('active_entries'):
         die('SOL wadpack active entry count does not match the manifest')
-    if manifest.get('runtime_slot') != 21 or manifest.get('content_slot') != 22:
+    if manifest.get('active_entries') != WADPACK_ENTRIES:
+        die('SOL wadpack contract 3 must define 18 active entries')
+    if manifest.get('runtime_slot') != RUNTIME_SLOT or manifest.get('content_slot') != CONTENT_SLOT:
         die('SOL runtime/content slots must be 21 and 22')
 
 
@@ -145,8 +154,10 @@ def expected_contract(manifest_path: Path | None,
     version = read_json(version_path)
     validate_manifest(manifest)
     active = active_items(manifest)
+    bundle_version = version.get('bundle_version', version['version'])
+    runtime_name, content_name = canonical_component_names(bundle_version)
     return {
-        'version': version.get('bundle_version', version['version']),
+        'version': bundle_version,
         'bundle_contract': version.get('bundle_contract'),
         'bundle_name': version.get('bundle_name'),
         'wadpack_contract': version['wadpack_contract'],
@@ -157,6 +168,8 @@ def expected_contract(manifest_path: Path | None,
         'runtime_names': [item['runtime_name'] for item in active],
         'runtime_slot': manifest['runtime_slot'],
         'content_slot': manifest['content_slot'],
+        'runtime_name': runtime_name,
+        'content_name': content_name,
     }
 
 
@@ -168,10 +181,25 @@ def validate_slot_table(slots: list[dict[str, Any]]) -> None:
             die(f'Invalid SOL bundle slot state at {entry.get("slot")}')
         if entry.get('kind') not in {'wadpack', 'runtime', 'content'}:
             die(f'Invalid SOL bundle slot kind at {entry.get("slot")}')
-    if slots[20].get('kind') != 'runtime' or slots[20].get('state') != 'active':
+
+    if (slots[10].get('state') != 'retired' or slots[10].get('kind') != 'wadpack' or
+            slots[10].get('id') != 'hq-psx-music'):
+        die('SOL bundle slot 11 must retire hq-psx-music')
+    if (slots[18].get('state') != 'active' or slots[18].get('kind') != 'wadpack' or
+            slots[18].get('id') != 'precise-crosshair'):
+        die('SOL bundle slot 19 must contain PreciseCrosshair')
+    if slots[19].get('state') != 'reserved' or slots[19].get('kind') != 'wadpack':
+        die('SOL bundle slot 20 must remain reserved')
+    if (slots[20].get('kind') != 'runtime' or slots[20].get('state') != 'active' or
+            slots[20].get('id') != 'sol-runtime'):
         die('SOL bundle slot 21 must be the active runtime')
-    if slots[21].get('kind') != 'content' or slots[21].get('state') != 'active':
+    if (slots[21].get('kind') != 'content' or slots[21].get('state') != 'active' or
+            slots[21].get('id') != 'sol-content'):
         die('SOL bundle slot 22 must be the active content')
+
+    active_wadpack = [entry for entry in slots[:20] if entry.get('state') == 'active']
+    if len(active_wadpack) != WADPACK_ENTRIES:
+        die('SOL bundle must define 18 active wadpack slots')
 
 
 def validate_component_table(components: list[dict[str, Any]],
@@ -182,6 +210,10 @@ def validate_component_table(components: list[dict[str, Any]],
     component_slots = [entry.get('slot') for entry in components]
     if len(archives) != len(set(archives)) or len(component_slots) != len(set(component_slots)):
         die('SOL bundle contains duplicate component slots or carrier names')
+
+    active_slots = [entry['slot'] for entry in slots if entry['state'] == 'active']
+    if component_slots != active_slots:
+        die('SOL bundle must contain every active slot exactly once in slot order')
 
     by_slot = {entry['slot']: entry for entry in slots}
     for entry in components:
@@ -214,18 +246,44 @@ def validate_component_table(components: list[dict[str, Any]],
             die(f'SOL bundle mounts inactive slot {entry["slot"]}')
 
 
+def one_component(metadata: dict[str, Any], kind: str) -> dict[str, Any]:
+    matches = [entry for entry in metadata['components'] if entry.get('kind') == kind]
+    if len(matches) != 1:
+        die(f'SOL bundle must contain exactly one {kind} component')
+    return matches[0]
+
+
 def validate_contract(metadata: dict[str, Any], expected: dict[str, Any] | None) -> None:
     if metadata.get('schema') != SCHEMA or metadata.get('project') != 'SOL':
         die('Unsupported SOL bundle metadata')
+    version = metadata.get('version')
+    if not isinstance(version, str) or not version:
+        die('SOL bundle version is missing')
+    if metadata.get('bundle_contract') != BUNDLE_CONTRACT:
+        die('Unsupported SOL bundle contract')
+    if metadata.get('wadpack_contract') != WADPACK_CONTRACT:
+        die('Unsupported SOL wadpack contract')
+    if metadata.get('wadpack_entries') != WADPACK_ENTRIES:
+        die('SOL bundle wadpack entry count is incompatible')
+    if metadata.get('credits') != 'THIRD_PARTY.md':
+        die('SOL bundle attribution filename is incompatible')
+
     slots = metadata.get('slots')
     components = metadata.get('components')
     if not isinstance(slots, list) or not isinstance(components, list):
         die('SOL bundle slot or component table is missing')
     validate_slot_table(slots)
     validate_component_table(components, slots)
+
+    runtime_name, content_name = canonical_component_names(version)
+    if one_component(metadata, 'runtime').get('runtime_name') != runtime_name:
+        die('SOL bundle runtime component name is incompatible')
+    if one_component(metadata, 'content').get('runtime_name') != content_name:
+        die('SOL bundle content component name is incompatible')
+
     if expected is None:
         return
-    if metadata.get('version') != expected['version']:
+    if version != expected['version']:
         die('SOL bundle version does not match this checkout')
     if metadata.get('bundle_contract') != expected['bundle_contract']:
         die('SOL bundle contract does not match this checkout')
@@ -245,6 +303,10 @@ def validate_contract(metadata: dict[str, Any], expected: dict[str, Any] | None)
         die('SOL bundle wadpack IDs do not match this checkout')
     if [entry.get('runtime_name') for entry in wadpack] != expected['runtime_names']:
         die('SOL bundle materialized runtime names do not match this checkout')
+    if one_component(metadata, 'runtime').get('runtime_name') != expected['runtime_name']:
+        die('SOL bundle runtime name does not match this checkout')
+    if one_component(metadata, 'content').get('runtime_name') != expected['content_name']:
+        die('SOL bundle content name does not match this checkout')
 
 
 def verify_bundle(bundle: Path,
@@ -281,13 +343,6 @@ def verify_bundle(bundle: Path,
     raise AssertionError('unreachable')
 
 
-def one_component(metadata: dict[str, Any], kind: str) -> dict[str, Any]:
-    matches = [entry for entry in metadata['components'] if entry.get('kind') == kind]
-    if len(matches) != 1:
-        die(f'SOL bundle must contain exactly one {kind} component')
-    return matches[0]
-
-
 def verify_live_inputs(metadata: dict[str, Any], runtime: Path | None,
                        content: Path | None, credits: Path | None) -> None:
     for path, kind in ((runtime, 'runtime'), (content, 'content')):
@@ -321,6 +376,8 @@ def build_bundle(args: argparse.Namespace) -> None:
     if not args.credits.is_file():
         die(f'SOL attribution file is missing: {args.credits}')
 
+    bundle_version = version.get('bundle_version', version['version'])
+    runtime_name, content_name = canonical_component_names(bundle_version)
     inputs = runtime_inputs(manifest, args.vend)
     components: list[dict[str, Any]] = []
     sources: list[tuple[str, Path]] = []
@@ -336,7 +393,7 @@ def build_bundle(args: argparse.Namespace) -> None:
     runtime_archive = carrier_name(runtime_slot, 'sol-runtime')
     components.append(component_record(
         runtime_slot, 'runtime', 'sol-runtime', 'SOL runtime', runtime_archive,
-        args.runtime.name, runtime_digest, 'SOL-project'))
+        runtime_name, runtime_digest, 'SOL-project'))
     sources.append((runtime_archive, args.runtime))
 
     content_slot = manifest['content_slot']
@@ -344,7 +401,7 @@ def build_bundle(args: argparse.Namespace) -> None:
     content_archive = carrier_name(content_slot, 'sol-content')
     components.append(component_record(
         content_slot, 'content', 'sol-content', 'SOL test content', content_archive,
-        args.content.name, content_digest, 'SOL-project'))
+        content_name, content_digest, 'SOL-project'))
     sources.append((content_archive, args.content))
 
     components.sort(key=lambda entry: entry['slot'])
@@ -352,7 +409,7 @@ def build_bundle(args: argparse.Namespace) -> None:
     metadata = {
         'schema': SCHEMA,
         'project': 'SOL',
-        'version': version.get('bundle_version', version['version']),
+        'version': bundle_version,
         'bundle_contract': version['bundle_contract'],
         'native_embedding': 'uzdoom-root-wad-carriers',
         'wadpack_contract': version['wadpack_contract'],
