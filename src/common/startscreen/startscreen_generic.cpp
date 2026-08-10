@@ -147,10 +147,15 @@ void FGenericStartScreen::DrawParticles()
 
 bool FGenericStartScreen::DoProgress(int advance)
 {
-	FStartScreen::DoProgress(advance);
+	if (!FStartScreen::DoProgress(advance))
+	{
+		return false;
+	}
+
 	DrawParticles();
 	delete StartupTexture;
 	StartupTexture = nullptr;
+	Render(true);
 	return true;
 }
 
