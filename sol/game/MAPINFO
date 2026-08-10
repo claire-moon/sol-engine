@@ -1,7 +1,6 @@
 GameInfo
 {
     AddEventHandlers = "SolBootstrap"
-    PlayerClasses = "SolPlayer"
 }
 
 map E1M1 "TESTMAP"
