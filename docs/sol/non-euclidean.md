@@ -27,13 +27,15 @@ remote threshold with continuous rendering and movement. The result is a
 deliberately impossible adjacency: the apparent room connection does not match
 Euclidean map space.
 
-TESTMAP adds a player-facing traversal guard to this demonstration pair. The
-player must be moving with a forward component relative to the current view
-direction to cross either linked threshold. Backing into a TESTMAP threshold is
-blocked instead of translating the player through the portal. This prevents the
-remote displacement from becoming visible while the player is deliberately
-looking back at the space being left. The restriction is specific to the
-TESTMAP pair and does not change the engine's ordinary linked-portal semantics.
+TESTMAP adds a player-facing traversal policy to this demonstration pair. When
+the player's pending XY movement has a forward component relative to the current
+view direction, the engine keeps the normal linked-portal displacement and
+portal interpolation. When the player is looking away from the threshold and
+moves backward through it, the engine suppresses the linked displacement and
+portal interpolation. The ordinary two-sided linedef then behaves as local map
+geometry, so the player walks into the physically adjacent room without a
+teleport transition. The policy is specific to TESTMAP destination IDs 9001 and
+9002 and does not change the engine's ordinary linked-portal semantics.
 
 TESTMAP contains no monsters. Its purpose in v0.4 is deterministic validation of
 geometry, rendering, material, lighting, ambience, prop, weapon, and resource
