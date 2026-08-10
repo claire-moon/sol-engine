@@ -134,6 +134,7 @@ using namespace FileSys;
 
 struct SolBundleComponent
 {
+	int Slot;
 	const char* Kind;
 	const char* Id;
 	const char* Archive;
@@ -141,27 +142,36 @@ struct SolBundleComponent
 };
 
 static constexpr SolBundleComponent SolBundleComponents[] = {
-	{ "wadpack", "voxel-doom", "01-voxel-doom.wad", "01-voxel-doom-v2.4.pk3" },
-	{ "wadpack", "universal-weapon-sway", "02-universal-weapon-sway.wad", "02-universal-weapon-sway.pk3" },
-	{ "wadpack", "troo-cullers", "03-troo-cullers.wad", "03-troo-cullers-2.5.pk3" },
-	{ "wadpack", "tilt-plus-plus", "04-tilt-plus-plus.wad", "04-tilt-plus-plus.pk3" },
-	{ "wadpack", "relite", "05-relite.wad", "05-relite-0.7.3b.pk3" },
-	{ "wadpack", "angled-doom-lite", "06-angled-doom-lite.wad", "06-angled-doom-lite-1.2.1.pk3" },
-	{ "wadpack", "nashgore-next", "07-nashgore-next.wad", "07-nashgore-next.pk3" },
-	{ "wadpack", "nashgore-voxels", "08-nashgore-voxels.wad", "08-nashgore-voxels-official.pk3" },
-	{ "wadpack", "final-custom-doom", "09-final-custom-doom.wad", "09-final-custom-doom-v1.0.0-beta.pk3" },
-	{ "wadpack", "vanilla-essence", "10-vanilla-essence.wad", "10-vanilla-essence-4.3.pk3" },
-	{ "wadpack", "hq-psx-music", "11-hq-psx-music.wad", "11-hq-psx-music.wad" },
-	{ "wadpack", "psx-sfx", "12-psx-sfx.wad", "12-psx-sfx.wad" },
-	{ "wadpack", "flashlight-plus-plus", "13-flashlight-plus-plus.wad", "13-flashlight-plus-plus-v9_1.pk3" },
-	{ "wadpack", "alpha-hud", "14-alpha-hud.wad", "14-ww-alpha-hud.wad" },
-	{ "wadpack", "universal-ambience", "15-universal-ambience.wad", "15-universal-ambience.pk3" },
-	{ "wadpack", "cosmoambience-script-edited", "16-cosmoambience-script-edited.wad", "16-cosmoambience-script-edited.pk3" },
-	{ "wadpack", "ambient-decorations", "17-ambient-decorations.wad", "17-ambient-decorations.pk3" },
-	{ "wadpack", "targetspy", "18-targetspy.wad", "18-targetspy-v3.1.0.pk3" },
-	{ "runtime", "sol-runtime", "19-sol-runtime.wad", "sol-v0.3.0.pk3" },
-	{ "content", "sol-content", "20-sol-content.wad", "sol-e1m1-v0.2.0.pk3" },
+	{ 1, "wadpack", "voxel-doom", "01-voxel-doom.wad", "01-voxel-doom-v2.4.pk3" },
+	{ 2, "wadpack", "universal-weapon-sway", "02-universal-weapon-sway.wad", "02-universal-weapon-sway.pk3" },
+	{ 3, "wadpack", "troo-cullers", "03-troo-cullers.wad", "03-troo-cullers-2.5.pk3" },
+	{ 4, "wadpack", "tilt-plus-plus", "04-tilt-plus-plus.wad", "04-tilt-plus-plus.pk3" },
+	{ 5, "wadpack", "relite", "05-relite.wad", "05-relite-0.7.3b.pk3" },
+	{ 6, "wadpack", "angled-doom-lite", "06-angled-doom-lite.wad", "06-angled-doom-lite-1.2.1.pk3" },
+	{ 7, "wadpack", "nashgore-next", "07-nashgore-next.wad", "07-nashgore-next.pk3" },
+	{ 8, "wadpack", "nashgore-voxels", "08-nashgore-voxels.wad", "08-nashgore-voxels-official.pk3" },
+	{ 9, "wadpack", "final-custom-doom", "09-final-custom-doom.wad", "09-final-custom-doom-v1.0.0-beta.pk3" },
+	{ 10, "wadpack", "vanilla-essence", "10-vanilla-essence.wad", "10-vanilla-essence-4.3.pk3" },
+	{ 12, "wadpack", "psx-sfx", "12-psx-sfx.wad", "12-psx-sfx.wad" },
+	{ 13, "wadpack", "flashlight-plus-plus", "13-flashlight-plus-plus.wad", "13-flashlight-plus-plus-v9_1.pk3" },
+	{ 14, "wadpack", "alpha-hud", "14-alpha-hud.wad", "14-ww-alpha-hud.wad" },
+	{ 15, "wadpack", "universal-ambience", "15-universal-ambience.wad", "15-universal-ambience.pk3" },
+	{ 16, "wadpack", "cosmoambience-script-edited", "16-cosmoambience-script-edited.wad", "16-cosmoambience-script-edited.pk3" },
+	{ 17, "wadpack", "ambient-decorations", "17-ambient-decorations.wad", "17-ambient-decorations.pk3" },
+	{ 18, "wadpack", "targetspy", "18-targetspy.wad", "18-targetspy-v3.1.0.pk3" },
+	{ 19, "wadpack", "precise-crosshair", "19-precise-crosshair.wad", "19-precise-crosshair-v1.5.0.pk3" },
+	{ 21, "runtime", "sol-runtime", "21-sol-runtime.wad", "sol-v0.4.0.pk3" },
+	{ 22, "content", "sol-content", "22-sol-content.wad", "sol-e1m1-v0.4.0.pk3" },
 };
+
+static const SolBundleComponent* SolBundleComponentForSlot(int slot)
+{
+	for (const auto& component : SolBundleComponents)
+	{
+		if (component.Slot == slot) return &component;
+	}
+	return nullptr;
+}
 
 static FString HashSolBundleEntry(FResourceFile* bundle, int entry, const FString& path)
 {
@@ -268,7 +278,6 @@ static void ValidateSolBundle(const FString& path)
 	int bundleContract = 0;
 	int wadpackContract = 0;
 	int wadpackEntries = 0;
-	std::array<FString, countof(SolBundleComponents)> componentHashes;
 	manifest("project", project)
 		("version", version)
 		("schema", schema)
@@ -278,6 +287,60 @@ static void ValidateSolBundle(const FString& path)
 		("credits", credits)
 		("credits_sha256", creditsHash);
 
+	unsigned slotCount = 0;
+	if (manifest.BeginArray("slots"))
+	{
+		slotCount = manifest.ArraySize();
+		for (unsigned index = 0; index < slotCount; ++index)
+		{
+			if (!manifest.BeginObject(nullptr))
+			{
+				I_FatalError("%s has a malformed SOLPACK slot table", path.GetChars());
+			}
+
+			int slot = 0;
+			FString state;
+			FString kind;
+			FString id;
+			manifest("slot", slot)
+				("state", state)
+				("kind", kind)
+				("id", id);
+			manifest.EndObject();
+
+			const int expectedSlot = static_cast<int>(index + 1);
+			if (slot != expectedSlot)
+			{
+				I_FatalError("%s has a non-contiguous SOLPACK slot table at slot %u",
+					path.GetChars(), index + 1);
+			}
+
+			const auto* expected = SolBundleComponentForSlot(slot);
+			if (slot == 11)
+			{
+				if (state.Compare("retired") != 0 || kind.Compare("wadpack") != 0 ||
+					id.Compare("hq-psx-music") != 0)
+				{
+					I_FatalError("%s does not retire SOLPACK slot 11", path.GetChars());
+				}
+			}
+			else if (slot == 20)
+			{
+				if (state.Compare("reserved") != 0 || kind.Compare("wadpack") != 0)
+				{
+					I_FatalError("%s does not reserve SOLPACK slot 20", path.GetChars());
+				}
+			}
+			else if (expected == nullptr || state.Compare("active") != 0 ||
+				kind.Compare(expected->Kind) != 0 || id.Compare(expected->Id) != 0)
+			{
+				I_FatalError("%s has an incompatible SOLPACK slot %d", path.GetChars(), slot);
+			}
+		}
+		manifest.EndArray();
+	}
+
+	std::array<FString, countof(SolBundleComponents)> componentHashes;
 	unsigned componentCount = 0;
 	if (manifest.BeginArray("components"))
 	{
@@ -289,13 +352,15 @@ static void ValidateSolBundle(const FString& path)
 				I_FatalError("%s has a malformed SOLPACK component table", path.GetChars());
 			}
 
-			int order = 0;
+			int slot = 0;
+			FString state;
 			FString kind;
 			FString id;
 			FString archive;
 			FString runtimeName;
 			FString hash;
-			manifest("order", order)
+			manifest("slot", slot)
+				("state", state)
 				("kind", kind)
 				("id", id)
 				("archive", archive)
@@ -308,12 +373,13 @@ static void ValidateSolBundle(const FString& path)
 				I_FatalError("%s declares too many SOLPACK components", path.GetChars());
 			}
 			const auto& expected = SolBundleComponents[index];
-			if (order != static_cast<int>(index + 1) || kind.Compare(expected.Kind) != 0 ||
-				id.Compare(expected.Id) != 0 || archive.Compare(expected.Archive) != 0 ||
+			if (slot != expected.Slot || state.Compare("active") != 0 ||
+				kind.Compare(expected.Kind) != 0 || id.Compare(expected.Id) != 0 ||
+				archive.Compare(expected.Archive) != 0 ||
 				runtimeName.Compare(expected.RuntimeName) != 0 || !IsSolSHA256(hash))
 			{
-				I_FatalError("%s has an incompatible SOLPACK component at slot %u",
-					path.GetChars(), index + 1);
+				I_FatalError("%s has an incompatible SOLPACK component at slot %d",
+					path.GetChars(), expected.Slot);
 			}
 			componentHashes[index] = hash;
 		}
@@ -321,26 +387,19 @@ static void ValidateSolBundle(const FString& path)
 	}
 
 	if (project.Compare("SOL") != 0 || version.Compare(VERSIONSTR) != 0 ||
-		schema != SOLPACK_SCHEMA ||
-		bundleContract != SOLBUNDLE_CONTRACT ||
-		wadpackContract != SOL_WADPACK_CONTRACT ||
-		wadpackEntries != SOL_WADPACK_ENTRIES ||
-		componentCount != SOLBUNDLE_COMPONENTS ||
+		schema != SOLPACK_SCHEMA || bundleContract != SOLBUNDLE_CONTRACT ||
+		wadpackContract != SOL_WADPACK_CONTRACT || wadpackEntries != SOL_WADPACK_ENTRIES ||
+		slotCount != SOL_CONTENT_SLOT || componentCount != SOLBUNDLE_COMPONENTS ||
 		componentCount != countof(SolBundleComponents) ||
 		credits.Compare("THIRD_PARTY.md") != 0 || !IsSolSHA256(creditsHash))
 	{
 		I_FatalError(
 			"%s has an incompatible SOLPACK contract "
-			"(schema %d, bundle %d, wadpack %d/%d, components %u)",
+			"(schema %d, bundle %d, wadpack %d/%d, slots %u, components %u)",
 			path.GetChars(), schema, bundleContract, wadpackContract,
-			wadpackEntries, componentCount);
+			wadpackEntries, slotCount, componentCount);
 	}
 
-	// Full-path archive entries are normalized and alphabetized by
-	// FResourceFile::PostProcessArchive before they reach this validator. The
-	// numbered carrier names therefore define both the verifiable order here and
-	// the recursive mount order used by the engine. SOLPACK and THIRD_PARTY sort
-	// after the 01-20 carriers.
 	if (bundle->EntryCount() != static_cast<int>(componentCount + 2) ||
 		manifestEntry != static_cast<int>(componentCount) ||
 		creditsEntry != static_cast<int>(componentCount + 1))
@@ -359,14 +418,90 @@ static void ValidateSolBundle(const FString& path)
 		if (entry != static_cast<int>(index) ||
 			stricmp(bundle->getName(entry), expected.Archive) != 0)
 		{
-			I_FatalError("%s has a missing or misordered carrier at slot %u",
-				path.GetChars(), index + 1);
+			I_FatalError("%s has a missing or misordered carrier at slot %d",
+				path.GetChars(), expected.Slot);
 		}
-
 		if (HashSolBundleEntry(bundle.get(), entry, path).CompareNoCase(componentHashes[index]) != 0)
 		{
-			I_FatalError("%s has a changed carrier at slot %u", path.GetChars(), index + 1);
+			I_FatalError("%s has a changed carrier at slot %d", path.GetChars(), expected.Slot);
 		}
+	}
+}
+
+static bool SolDefaultCategoryAllowed(const FString& category)
+{
+	return category.Compare("renderer") == 0 || category.Compare("mod") == 0 ||
+		category.Compare("audio") == 0 || category.Compare("hud") == 0 ||
+		category.Compare("gameplay") == 0;
+}
+
+static bool SOL_ApplyCanonicalDefaults(bool force)
+{
+	const int lump = fileSystem.CheckNumForFullName("SOLDEFAULTS.json");
+	if (lump < 0)
+	{
+		if (force) Printf(TEXTCOLOR_ORANGE "SOLDEFAULTS.json is not available.\n");
+		return false;
+	}
+
+	auto data = fileSystem.ReadFile(lump);
+	FSerializer defaults;
+	defaults.mLumpName = "SOLDEFAULTS.json";
+	if (!defaults.OpenReader(data.string(), data.size()))
+	{
+		I_FatalError("Cannot parse SOLDEFAULTS.json");
+	}
+
+	FString project;
+	int schema = 0;
+	int contract = 0;
+	defaults("project", project)("schema", schema)("contract", contract);
+	if (project.Compare("SOL") != 0 || schema != 1 || contract != SOLDEFAULTS_CONTRACT)
+	{
+		I_FatalError("Incompatible SOLDEFAULTS.json contract");
+	}
+
+	if (!defaults.BeginArray("values"))
+	{
+		I_FatalError("SOLDEFAULTS.json has no values table");
+	}
+	const unsigned count = defaults.ArraySize();
+	for (unsigned index = 0; index < count; ++index)
+	{
+		if (!defaults.BeginObject(nullptr))
+		{
+			I_FatalError("SOLDEFAULTS.json contains a malformed value");
+		}
+		FString category;
+		FString name;
+		FString value;
+		defaults("category", category)("name", name)("value", value);
+		defaults.EndObject();
+		if (!SolDefaultCategoryAllowed(category) || name.IsEmpty())
+		{
+			I_FatalError("SOLDEFAULTS.json contains an unsupported default entry");
+		}
+
+		FBaseCVar* cvar = FindCVar(name.GetChars(), nullptr);
+		if (cvar == nullptr)
+		{
+			Printf(TEXTCOLOR_ORANGE "SOL default skipped unavailable CVAR %s.\n", name.GetChars());
+			continue;
+		}
+		const bool setCurrent = force || (cvar->GetFlags() & CVAR_ISDEFAULT) != 0;
+		UCVarValue textValue(value.GetChars());
+		cvar->SetGenericRepDefault(textValue, CVAR_String);
+		if (setCurrent) cvar->SetGenericRep(textValue, CVAR_String);
+	}
+	defaults.EndArray();
+	return true;
+}
+
+CCMD(sol_reset_defaults)
+{
+	if (SOL_ApplyCanonicalDefaults(true))
+	{
+		Printf("SOL defaults contract %d restored.\n", SOLDEFAULTS_CONTRACT);
 	}
 }
 
@@ -3798,6 +3933,7 @@ static int D_InitGame(const FIWADInfo* iwad_info, std::vector<FileSys::ResourceN
 	SetMapxxFlag();
 
 	D_GrabCVarDefaults(); //parse DEFCVARS
+	SOL_ApplyCanonicalDefaults(false);
 	InitPalette();
 
 	if (!batchrun) Printf("S_Init: Setting up sound.\n");

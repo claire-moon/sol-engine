@@ -10,6 +10,7 @@ while [[ -L $source_path ]]; do
     fi
 done
 launcher_dir=$(cd -P "$(dirname "$source_path")" && pwd)
+root=$(cd "$launcher_dir/.." && pwd)
 
 find_engine() {
     local candidate
@@ -17,11 +18,10 @@ find_engine() {
         "${SOL_ENGINE:-}" \
         "$launcher_dir/sol-engine" \
         "$launcher_dir/Release/sol-engine" \
-        "$launcher_dir/../build/sol-v030/sol-engine" \
-        "$launcher_dir/../build/sol-local/sol-engine" \
-        "$launcher_dir/../build/sol-local/Release/sol-engine" \
-        "$launcher_dir/../build/sol-engine" \
-        "$launcher_dir/../build/Release/sol-engine"; do
+        "$root/build/sol-local/sol-engine" \
+        "$root/build/sol-local/Release/sol-engine" \
+        "$root/build/sol-engine" \
+        "$root/build/Release/sol-engine"; do
         if [[ -n $candidate && -x $candidate ]]; then
             realpath "$candidate"
             return 0
@@ -31,9 +31,21 @@ find_engine() {
 }
 
 engine=$(find_engine) || {
-    printf 'SOL engine executable not found.\n' >&2
+    printf 'SOL Engine v0.4 executable not found. Build the current checkout before launching.\n' >&2
     exit 1
 }
+
+if [[ ${SOL_ALLOW_STALE_ENGINE:-0} != 1 && $engine == "$root"/build/* ]]; then
+    for required_source in \
+        "$root/src/version.h" \
+        "$root/src/common/startscreen/startscreen_generic.cpp"; do
+        if [[ -f $required_source && $engine -ot $required_source ]]; then
+            printf 'SOL Engine executable is older than the v0.4 source tree: %s\n' "$engine" >&2
+            printf 'Rebuild the current checkout before launching so the SOL! loading screen and engine changes are present.\n' >&2
+            exit 1
+        fi
+    done
+fi
 
 args=()
 if [[ -n ${DOOM_IWAD:-} ]]; then

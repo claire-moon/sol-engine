@@ -1,8 +1,8 @@
-# SOL Engine-First Development Roadmap
+# SOL! Engine-First Development Roadmap
 
-SOL is a free Doom modification and purpose-built UZDoom fork. It requires a
-user-owned `DOOM.WAD` or `DOOMU.WAD`; it is not a replacement IWAD or a Doom II
-product. Engine development comes first, editor integration follows a frozen
+SOL! is a free Doom modification and purpose-built source-port fork. It requires
+a user-owned `DOOM.WAD` or `DOOMU.WAD`; it is not a replacement IWAD or a Doom
+II product. Engine development comes first, editor integration follows a frozen
 engine SDK, and story/production level work remains parked until both are ready.
 
 Each version below is one gated agent goal. Work uses bounded feature branches,
@@ -28,60 +28,72 @@ The next phase does not begin until the preceding default branch is green.
 - Runtime order is engine support, Doom IWAD, mandatory `sol.pk3`, then optional
   user `-file` additions. Extra files, cheats, console warps, or developer
   overrides mark a run `MODIFIED` and disable progression/record writes.
-- SOL owns separate configuration, save, cache, log, and profile namespaces. It
-  never silently adopts a UZDoom user profile.
+- SOL! owns separate configuration, save, cache, log, and profile namespaces. It
+  never silently adopts a legacy upstream user profile.
 - OpenGL and Vulkan are the supported renderers. Software rendering remains an
   internal diagnostic build path but is hidden and unsupported.
 - All player-facing presentation uses a centered 4:3 canvas with side pillars.
-- Hard map loads remain intentional. SOL does not use seamless map transfer.
+- Hard map loads remain intentional. SOL! does not use seamless map transfer.
 - Story contract 1 stays intact and empty content stays valid while story work
   is parked.
 - Complete third-party bundles remain local-only until asset-level
   redistribution permission is documented. Free/noncommercial distribution is
   not a substitute for permission.
 
-## Active — `v0.3.0`: SOL engine identity and native boot
+## Completed — `v0.3.0`: SOL! engine identity and native boot
 
-Goal: make SOL a distinctly named engine that automatically boots its mandatory
+Goal: make SOL! a distinctly named engine that automatically boots its mandatory
 bundle without wrapper-supplied `-file sol.pk3`.
 
 - Rename executable, support archive, build/package identity, application ID,
-  window titles, crash metadata, desktop files, and user-data paths to SOL.
-- Add fresh `sol-engine.ini`, SOL save/profile paths, and first-run Doom IWAD
-  discovery with a SOL-branded picker when discovery fails.
+  window titles, crash metadata, desktop files, and user-data paths to SOL!.
+- Add fresh `sol-engine.ini`, SOL! save/profile paths, and first-run Doom IWAD
+  discovery with a SOL!-branded picker when discovery fails.
 - Accept Doom and Ultimate Doom in the product launcher and reject Doom II.
 - Validate and mount adjacent `sol.pk3` after the IWAD and before optional files.
-- Preserve broad mod support after SOL content, with deterministic `MODIFIED`
+- Preserve broad mod support after SOL! content, with deterministic `MODIFIED`
   state and progression-write suppression.
-- Establish a documented curated intake path for selected upstream UZDoom fixes.
+- Establish a documented curated intake path for selected upstream source-port
+  fixes.
 
 Exit gate: clean Windows and Linux installations launch through `sol-engine`,
-never require `-file sol.pk3`, and do not read or write UZDoom user state.
+never require `-file sol.pk3`, and do not read or write legacy upstream user
+state.
 
-## `v0.4.0`: bundle authority and canonical defaults
+## Active — `v0.4.0`: bundle authority, canonical defaults, and geometry foundation
 
 Goal: make the engine repository authoritative for resource locking, bundle
-construction, provenance, and the reproducible gameplay configuration.
+construction, provenance, reproducible gameplay configuration, startup identity,
+and the first SOL! impossible-space primitive.
 
 - Move the wadpack manifest/importer/locker/builder from editor ownership.
 - Introduce bundle contract 2 with explicit `active`, `retired`, `reserved`,
   `runtime`, and `content` slot states.
 - Introduce wadpack contract 3: retire/unmount slot 11, preserve slots 12–18,
-  reserve/unmount slots 19–20, and place SOL runtime/content at 21–22.
+  assign PreciseCrosshair v1.5.0 to slot 19, reserve/unmount slot 20, and place
+  SOL! runtime/content at 21–22.
 - Introduce `SOLDEFAULTS.json` contract 1 and import only approved renderer,
   mod, audio, HUD, and gameplay values from the development profile.
-- Add Reset to SOL Defaults. Never import personal paths, history, bindings, or
+- Add Reset to SOL! Defaults. Never import personal paths, history, bindings, or
   saves.
-- Keep upstream archives intact and hash-locked while SOL-owned overlays load
+- Replace bitmap startup artwork and the loading bar with a deterministic
+  blue-white particle system that converges into the SOL! North Star as loading
+  progresses; keep a separate clean white `sol-northstar.svg` vector mark.
+- Introduce geometry contract 1 around reciprocal linked line portals. Present
+  E1M1 as monster-free `TESTMAP` and use a remote linked-portal pair to prove an
+  impossible adjacency for later non-Euclidean episode design.
+- Keep upstream archives intact and hash-locked while SOL!-owned overlays load
   after them. Keep `THIRD_PARTY.md` embedded and fail public packaging closed
   when rights are unresolved.
 
 Exit gate: locked sources produce reproducible manifests and equivalent bundles
-on clean machines, with retired/reserved slots never mounted.
+on clean machines, retired/reserved slots never mount, the procedural startup
+contains no raster-logo/progress-bar dependency, and TESTMAP validates/traverses
+the reciprocal geometry-contract portal pair with zero monsters.
 
 ## `v0.5.0`: front end, display, audio baseline, and HUD shell
 
-Goal: replace the inherited player-facing shell with SOL presentation.
+Goal: replace the inherited player-facing shell with SOL! presentation.
 
 - Build an original ZScript/MENUDEF title screen with static replaceable art and
   only START, OPTIONS, and QUIT. START opens the unlocked Chapter selector.
@@ -94,7 +106,7 @@ Goal: replace the inherited player-facing shell with SOL presentation.
   cinematics.
 - Retain WW Alpha HUD and add authored whole-cockpit bob/strafe/turn/landing/
   damage motion without distorting the central world view.
-- Replace pause flow with RESUME, OPTIONS, ABANDON CHAPTER, and QUIT SOL. Remove
+- Replace pause flow with RESUME, OPTIONS, ABANDON CHAPTER, and QUIT SOL!. Remove
   normal Continue/Save/Load/difficulty surfaces.
 
 Exit gate: OpenGL and Vulkan match the approved 4:3 presentation and exact
@@ -125,7 +137,7 @@ travel, quit/crash, modified-run, and chapter-clear state.
 
 ## `v0.7.0`: custom UV and Final Custom Doom ownership
 
-Goal: reproduce the approved Final Custom Doom baseline through SOL-owned data
+Goal: reproduce the approved Final Custom Doom baseline through SOL!-owned data
 and code before retiring slot 9.
 
 - Baseline: weapon damage 2x, incoming damage 4x, enemy speed 2x, player speed
@@ -147,10 +159,10 @@ Goal: establish the survival-horror interaction layer around the locked stack.
 - Add `SOLAUDIO.json` contract 1 and a stable sparse cue API for linedef/scripted
   music intercuts, fades, stops, footsteps, landings, and powerup treatments.
   Do not start continuous level music automatically.
-- Layer SOL ambience after Universal Ambience and Ambient Decorations.
-- Establish SOL gore/dismemberment interfaces around NashGore and voxel gore.
+- Layer SOL! ambience after Universal Ambience and Ambient Decorations.
+- Establish SOL! gore/dismemberment interfaces around NashGore and voxel gore.
 - Keep PSX sound effects in slot 12 as a local-development placeholder and
-  replace them in place with user-supplied SOL sounds before public bundling.
+  replace them in place with user-supplied SOL! sounds before public bundling.
 - Independently audit all other audio-bearing resources; replacing PlayStation
   audio does not resolve their rights.
 
@@ -166,7 +178,7 @@ Goal: replace inherited skies with a deterministic C++/shader subsystem.
 - Support particle star fields, scaled planets, layered parallax, animated
   atmospheres/weather, and intense Chapter 4 kaleidoscopic effects.
 - Use one deterministic simulation for OpenGL and Vulkan. Permit truecolor sky
-  effects while indexed gameplay art follows the SOL palette.
+  effects while indexed gameplay art follows the SOL! palette.
 - Preserve the authored result on supported hardware; provide no simplified
   software-renderer substitute.
 
@@ -186,7 +198,7 @@ intended state without map leakage.
 
 ## `v0.11.0`: legacy hardware optimization
 
-Goal: target a 64-bit 2012-era OpenGL 3.3-class machine without changing SOL's
+Goal: target a 64-bit 2012-era OpenGL 3.3-class machine without changing SOL!'s
 intended appearance.
 
 - Target roughly Intel HD 4000/GTX 600-class hardware with 4 GB system memory.
@@ -204,7 +216,7 @@ the minimum-spec claim remains provisional until that physical test exists.
 
 Goal: freeze a stable engine surface for editor integration.
 
-- Publish SOL SDK contract 1 with versioned executable interface, schemas,
+- Publish SOL! SDK contract 1 with versioned executable interface, schemas,
   validators, support resources, metadata, diagnostics, and playtest contract.
 - Harden missing/corrupt IWAD, bundle mismatch, config migration, crash reporting,
   and modified-run diagnostics.
@@ -218,7 +230,7 @@ compatibility suites pass.
 
 ## Editor-led milestones after engine beta
 
-- `v0.13.0`: canonical 256-color SOL palette, derived translations/colormaps,
+- `v0.13.0`: canonical 256-color SOL! palette, derived translations/colormaps,
   `sol-palette`, and `sol-voxel` CLI/GUI with deterministic KVX export, metadata,
   editing, batch operations, and live engine preview.
 - `v0.14.0`: package/discover the versioned SDK and integrate it into

@@ -26,18 +26,18 @@
 
 /** Lots of different version numbers **/
 
-#define VERSIONSTR "0.3.0"
+#define VERSIONSTR "0.4.0"
 
 // The version as seen in the Windows resource
-#define RC_FILEVERSION 0,3,0,0
-#define RC_PRODUCTVERSION 0,3,0,0
+#define RC_FILEVERSION 0,4,0,0
+#define RC_PRODUCTVERSION 0,4,0,0
 #define RC_PRODUCTVERSION2 VERSIONSTR
 // These are for content versioning.
 #define VER_MAJOR 0
-#define VER_MINOR 3
+#define VER_MINOR 4
 #define VER_REVISION 0
 
-// This should always refer to the UZDoom version a derived port is based on and not reflect the derived port's version number!
+// This should always refer to the upstream compatibility version a derived port is based on and not reflect the derived port's version number!
 #define ENG_MAJOR 5
 #define ENG_MINOR 0
 #define ENG_REVISION 0
@@ -84,19 +84,24 @@
 
 #define BASEWAD "sol-engine.pk3"
 #define SOLBUNDLE "sol.pk3"
-#define SOLPACK_SCHEMA 1
-#define SOLBUNDLE_CONTRACT 1
-#define SOL_WADPACK_CONTRACT 2
+#define SOLPACK_SCHEMA 2
+#define SOLBUNDLE_CONTRACT 2
+#define SOL_WADPACK_CONTRACT 3
 #define SOL_WADPACK_ENTRIES 18
+#define SOL_WADPACK_SLOTS 20
 #define SOLBUNDLE_COMPONENTS 20
+#define SOL_RUNTIME_SLOT 21
+#define SOL_CONTENT_SLOT 22
+#define SOLDEFAULTS_CONTRACT 1
+#define SOL_GEOMETRY_CONTRACT 1
 // Set OPTIONALWAD to "" (null) to disable searching for it
 #define OPTIONALWAD "game_support.pk3"
 #define GZDOOM 1
 #define VR3D_ENABLED
 
 // More stuff that needs to be different for derivatives.
-#define GAMENAME "SOL Engine"
-#define WGAMENAME L"SOL Engine"
+#define GAMENAME "SOL! Engine"
+#define WGAMENAME L"SOL! Engine"
 #define GAMENAMELOWERCASE "sol-engine"
 #define APPID "io.github.claire_moon.solengine"
 #define QUERYIWADDEFAULT false

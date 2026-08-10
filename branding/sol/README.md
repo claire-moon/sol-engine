@@ -1,15 +1,20 @@
-# SOL branding
+# SOL! branding
 
-The SOL project owner supplied a visual reference on 2026-08-08 for the shared
-SOL Engine and SOL Editor identity. The reference was used only as design input;
-it is not stored in or distributed by this repository.
+The active SOL! identity is the North Star. Player-facing presentation spells the
+product `SOL!`; punctuation-free identifiers such as `sol-engine`, application
+IDs, archive names, paths, and source symbols remain unchanged where required by
+tooling or platform contracts.
 
-`sol-celestial-master.png` is the original generated raster master created for
-SOL under the project owner's direction. Its platform derivatives include
-`branding/misc/appicon.png`, the macOS iconset, Windows ICO, editor icons, and
-the engine boot logo. The master and those derivatives are SOL project assets
-distributed under GPL-3.0-or-later with the rest of this repository.
+`sol-northstar.svg` is the canonical flat vector mark: one white North Star on a
+transparent canvas with no background artwork. It is suitable for clean vector
+uses and may be rasterized into platform icon derivatives when those assets are
+refreshed.
 
-The earlier `sol-icon-master.png` is retained for history but is no longer the
-active identity source. Do not independently redraw or split the engine/editor
-identity without a recorded design decision.
+The engine startup/loading presentation does not display this SVG or any raster
+logo. It renders a deterministic procedural blue-white particle field whose
+particles converge into the North Star as startup progresses. The particle
+formation itself is the progress indication; there is no separate loading bar.
+
+`sol-icon-master.png` and existing platform icon derivatives are retained only
+until their platform-specific replacement pass. They are not the startup-screen
+art source.
