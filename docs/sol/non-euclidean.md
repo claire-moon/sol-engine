@@ -21,11 +21,19 @@ TESTMAP fixture.
 ## TESTMAP demonstration
 
 E1M1 is presented to the player as `TESTMAP`. It contains one reciprocal linked
-portal pair. The two thresholds are physically separated in the editor layout,
-but crossing the first threshold places the player at the remote second
-threshold with continuous rendering and movement. The result is a deliberately
-impossible adjacency: the apparent room connection does not match Euclidean map
-space.
+portal pair using linedef IDs 9001 and 9002. The two thresholds are physically
+separated in the editor layout, but a forward crossing places the player at the
+remote threshold with continuous rendering and movement. The result is a
+deliberately impossible adjacency: the apparent room connection does not match
+Euclidean map space.
+
+TESTMAP adds a player-facing traversal guard to this demonstration pair. The
+player must be moving with a forward component relative to the current view
+direction to cross either linked threshold. Backing into a TESTMAP threshold is
+blocked instead of translating the player through the portal. This prevents the
+remote displacement from becoming visible while the player is deliberately
+looking back at the space being left. The restriction is specific to the
+TESTMAP pair and does not change the engine's ordinary linked-portal semantics.
 
 TESTMAP contains no monsters. Its purpose in v0.4 is deterministic validation of
 geometry, rendering, material, lighting, ambience, prop, weapon, and resource
