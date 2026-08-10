@@ -10,6 +10,9 @@ bootstrap="$root/sol/game/zscript/sol/bootstrap.zs"
 mapinfo="$root/sol/game/MAPINFO"
 level_travel="$root/src/g_level.cpp"
 p_map="$root/src/playsim/p_map.cpp"
+doomplayer="$root/wadsrc/static/zscript/actors/doom/doomplayer.zs"
+thingdef_properties="$root/src/scripting/thingdef_properties.cpp"
+thingdef_parse="$root/src/scripting/decorate/thingdef_parse.cpp"
 
 grep -Fx '#include "zscript/sol/story_ids.zs"' "$entry" >/dev/null
 grep -Fx '#include "zscript/sol/story_state.zs"' "$entry" >/dev/null
@@ -28,6 +31,10 @@ grep -F 'Player.StartItem "Fist";' "$portal_guard" >/dev/null
 grep -F 'Player.StartItem "Clip", 50;' "$portal_guard" >/dev/null
 ! grep -F 'Player.StartItem "Pistol";' "$portal_guard" >/dev/null
 ! grep -F 'CanCrossLine' "$portal_guard" >/dev/null
+grep -F 'Player.StartItem "Pistol";' "$doomplayer" >/dev/null
+grep -F 'if (!bag.DropItemSet)' "$thingdef_properties" >/dev/null
+grep -F 'bag.DropItemList = NULL;' "$thingdef_properties" >/dev/null
+grep -F 'bag.Info->SetDropItems(bag.DropItemList);' "$thingdef_parse" >/dev/null
 grep -F 'const DVector2 solmove = tm.pos.XY() - thing->Pos().XY();' "$p_map" >/dev/null
 grep -F 'ld->args[2] == PORTT_LINKED' "$p_map" >/dev/null
 grep -F '(ld->args[0] == 9001 || ld->args[0] == 9002)' "$p_map" >/dev/null
