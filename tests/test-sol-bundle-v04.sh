@@ -52,12 +52,17 @@ python3 "$root/tools/sol-bundle.py" verify \
     --bundle "$tmp/sol.pk3" \
     --manifest "$root/sol/wadpack.json" \
     --version-file "$root/sol/version.json" >/dev/null
+python3 "$root/tools/sol-bundle.py" verify --bundle "$tmp/sol.pk3" >/dev/null
 
-python3 - "$tmp/sol.pk3" <<'PY'
+python3 - "$tmp" <<'PY'
 import json
 import sys
 import zipfile
-with zipfile.ZipFile(sys.argv[1]) as archive:
+from pathlib import Path
+
+tmp = Path(sys.argv[1])
+bundle = tmp / 'sol.pk3'
+with zipfile.ZipFile(bundle) as archive:
     names = archive.namelist()
     metadata = json.loads(archive.read('SOLPACK.json'))
 assert metadata['schema'] == 2
@@ -74,4 +79,35 @@ assert not any(name.startswith('20-') for name in names)
 assert any(name.startswith('19-precise-crosshair') for name in names)
 assert any(name.startswith('21-sol-runtime') for name in names)
 assert any(name.startswith('22-sol-content') for name in names)
+runtime = next(item for item in metadata['components'] if item['kind'] == 'runtime')
+content = next(item for item in metadata['components'] if item['kind'] == 'content')
+assert runtime['runtime_name'] == 'sol-v0.4.0.pk3'
+assert content['runtime_name'] == 'sol-e1m1-v0.4.0.pk3'
+
+
+def write_tampered(name, mutate):
+    target = tmp / name
+    with zipfile.ZipFile(bundle) as source, zipfile.ZipFile(target, 'w') as output:
+        changed = json.loads(source.read('SOLPACK.json'))
+        mutate(changed)
+        for info in source.infolist():
+            data = source.read(info.filename)
+            if info.filename == 'SOLPACK.json':
+                data = (json.dumps(changed, indent=2, sort_keys=True) + '\n').encode()
+            output.writestr(info, data)
+
+write_tampered('bad-contract.pk3', lambda value: value.__setitem__('bundle_contract', 99))
+write_tampered(
+    'bad-runtime-name.pk3',
+    lambda value: next(item for item in value['components'] if item['kind'] == 'runtime')
+        .__setitem__('runtime_name', 'runtime.pk3'),
+)
+write_tampered('missing-active.pk3', lambda value: value['components'].pop(0))
 PY
+
+for invalid in bad-contract.pk3 bad-runtime-name.pk3 missing-active.pk3; do
+    if python3 "$root/tools/sol-bundle.py" verify --bundle "$tmp/$invalid" >/dev/null 2>&1; then
+        printf 'invalid SOL bundle unexpectedly verified: %s\n' "$invalid" >&2
+        exit 1
+    fi
+done
