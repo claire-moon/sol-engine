@@ -1,7 +1,7 @@
 # SOL! geometry contract 1
 
 SOL! geometry contract 1 makes impossible space a supported gameplay primitive
-rather than a map-specific visual trick.
+rather than a map-specific teleport effect.
 
 ## Contract
 
@@ -15,27 +15,33 @@ and real two-sided space behind each threshold.
 For UDMF test content the canonical primitive is `Line_SetPortal` (`special =
 156`) with portal type `PORTT_LINKED` (`arg2 = 3`). `arg0` names the destination
 linedef ID. The destination must point back to the source through its own linked
-portal definition. SOL! validates this reciprocal shape in its deterministic
-TESTMAP fixture.
+portal definition.
 
-## TESTMAP demonstration
+SOL! does not change linked-portal traversal according to player view direction,
+movement direction, or map-specific linedef IDs. Portal rendering and movement
+remain engine primitives; concealment and reveal behavior belong to authored map
+geometry.
 
-E1M1 is presented to the player as `TESTMAP`. It contains one reciprocal linked
-portal pair using linedef IDs 9001 and 9002. The two thresholds are physically
-separated in the editor layout, but a forward crossing places the player at the
-remote threshold with continuous rendering and movement. The result is a
-deliberately impossible adjacency: the apparent room connection does not match
-Euclidean map space.
+## TESTMAP demonstrations
 
-TESTMAP adds a player-facing traversal policy to this demonstration pair. When
-the player's pending XY movement has a forward component relative to the current
-view direction, the engine keeps the normal linked-portal displacement and
-portal interpolation. When the player is looking away from the threshold and
-moves backward through it, the engine suppresses the linked displacement and
-portal interpolation. The ordinary two-sided linedef then behaves as local map
-geometry, so the player walks into the physically adjacent room without a
-teleport transition. The policy is specific to TESTMAP destination IDs 9001 and
-9002 and does not change the engine's ordinary linked-portal semantics.
+E1M1 is presented to the player as `TESTMAP`. It contains two reciprocal linked
+portal demonstrations.
+
+The illusion pair uses linedef IDs 9001 and 9002. Its local chamber has an
+ordinary physical entrance on a side wall, while the portal threshold is placed
+on a different wall. A player can therefore enter the chamber normally, turn to
+look back toward the physical entrance, and walk backward through the portal.
+The remote chamber uses the same material and dimensional language, and its
+ordinary exit is arranged away from the portal sightline. Looking back after
+leaving the remote chamber does not put the original physical entrance directly
+behind the portal threshold. The impossible-room effect is produced by layout,
+matching surfaces, and occlusion rather than conditional teleport code.
+
+The portal-lab pair uses linedef IDs 9011 and 9012. It is intentionally less
+concealed so rendering through a linked portal can be inspected directly. The
+lab is separated from the main test route by an authored `Door_Open` gate and is
+decorated as an intentional test chamber rather than exposing a bare portal in
+the middle of the general map.
 
 TESTMAP contains no monsters. Its purpose in v0.4 is deterministic validation of
 geometry, rendering, material, lighting, ambience, prop, weapon, and resource
@@ -47,4 +53,5 @@ Geometry contract 1 is the foundation for later episode authoring. Later
 contracts may layer portal graphs, recursive views, scale/perspective staging,
 conditional topology, and authored transition logic to create spaces in the
 spirit of impossible-room and forced-perspective games. Those effects must build
-on explicit SOL! contracts and deterministic tests rather than hidden map hacks.
+on explicit SOL! contracts and deterministic tests rather than hidden engine
+special cases.
