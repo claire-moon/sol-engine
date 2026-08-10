@@ -2597,19 +2597,6 @@ bool P_TryMove(AActor *thing, const DVector2 &pos,
 			portalhit.Delete(besthitnum);
 			line_t *ld = besthit.line;
 			FLinePortal *port = ld->getPortal();
-			const DVector2 solmove = tm.pos.XY() - thing->Pos().XY();
-			const bool sollocaltraversal =
-				thing->player != nullptr &&
-				port->mType == PORTT_LINKED &&
-				ld->args[2] == PORTT_LINKED &&
-				(ld->args[0] == 9001 || ld->args[0] == 9002) &&
-				(solmove | thing->Angles.Yaw.ToVector()) < 0.0;
-
-			if (sollocaltraversal)
-			{
-				break;
-			}
-
 			if (port->mType == PORTT_LINKED)
 			{
 				FLinkContext ctx;
