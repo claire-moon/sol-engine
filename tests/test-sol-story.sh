@@ -8,6 +8,7 @@ state="$root/sol/game/zscript/sol/story_state.zs"
 portal_guard="$root/sol/game/zscript/sol/portal_guard.zs"
 bootstrap="$root/sol/game/zscript/sol/bootstrap.zs"
 mapinfo="$root/sol/game/MAPINFO"
+wadpack="$root/sol/wadpack.json"
 level_travel="$root/src/g_level.cpp"
 p_map="$root/src/playsim/p_map.cpp"
 doomplayer="$root/wadsrc/static/zscript/actors/doom/doomplayer.zs"
@@ -35,6 +36,20 @@ grep -F 'Player.StartItem "Pistol";' "$doomplayer" >/dev/null
 grep -F 'if (!bag.DropItemSet)' "$thingdef_properties" >/dev/null
 grep -F 'bag.DropItemList = NULL;' "$thingdef_properties" >/dev/null
 grep -F 'bag.Info->SetDropItems(bag.DropItemList);' "$thingdef_parse" >/dev/null
+python3 - "$wadpack" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], "r", encoding="utf-8") as handle:
+    data = json.load(handle)
+
+slots = {entry["slot"]: entry for entry in data["slots"]}
+angled = slots[6]
+assert angled["state"] == "active"
+assert angled["id"] == "angled-doom-lite"
+assert angled["required"] is True
+assert angled["runtime_name"] == "06-angled-doom-lite-1.2.1.pk3"
+PY
 grep -F 'const DVector2 solmove = tm.pos.XY() - thing->Pos().XY();' "$p_map" >/dev/null
 grep -F 'ld->args[2] == PORTT_LINKED' "$p_map" >/dev/null
 grep -F '(ld->args[0] == 9001 || ld->args[0] == 9002)' "$p_map" >/dev/null
