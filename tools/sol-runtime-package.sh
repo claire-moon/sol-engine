@@ -19,7 +19,6 @@ for required in \
     SOLDEFAULTS.json \
     zscript/sol/story_ids.zs \
     zscript/sol/story_state.zs \
-    zscript/sol/portal_guard.zs \
     zscript/sol/bootstrap.zs; do
     if [[ ! -f "$source_dir/$required" ]]; then
         printf 'Missing SOL runtime file: %s\n' "$required" >&2
