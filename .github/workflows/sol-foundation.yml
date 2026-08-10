@@ -116,6 +116,7 @@ jobs:
         run: |
           grep -F 'ParticleCount = 768' src/common/startscreen/startscreen_generic.cpp
           grep -F 'DrawParticles' src/common/startscreen/startscreen_generic.cpp
+          grep -F 'Render(true);' src/common/startscreen/startscreen_generic.cpp
           ! grep -F '"BOOTLOGO"' src/common/startscreen/startscreen_generic.cpp
           ! grep -F 'Theme::getAccent' src/common/startscreen/startscreen_generic.cpp
           test -s branding/sol/sol-northstar.svg
@@ -147,4 +148,5 @@ jobs:
           unzip -p "$archive" SOLDEFAULTS.json | python3 -m json.tool >/dev/null
           unzip -Z1 "$archive" | grep -Fx zscript/sol/story_ids.zs
           unzip -Z1 "$archive" | grep -Fx zscript/sol/story_state.zs
+          unzip -Z1 "$archive" | grep -Fx zscript/sol/portal_guard.zs
           unzip -Z1 "$archive" | grep -Fx zscript/sol/bootstrap.zs
