@@ -1,6 +1,7 @@
 #include "playsim/sol_phase_portal_logic.h"
 
 #include <cassert>
+#include <initializer_list>
 
 int main()
 {
@@ -10,17 +11,34 @@ int main()
 	thresholds.RevealDot = 0.35;
 
 	using State = ESolPhasePortalState;
+	// 18: every persisted phase value round-trips to the deterministic state
+	// machine rather than relying on a pointer or transient renderer state.
+	for (State persisted : {State::DORMANT_LOCAL, State::ENTERED_FORWARD, State::ARMED_INSIDE, State::REVEALED_REMOTE})
+		assert(FSolPhasePortalStateMachine::FromStoredValue(uint8_t(persisted)) == persisted);
+	assert(FSolPhasePortalStateMachine::FromStoredValue(255) == State::DORMANT_LOCAL);
 	State state = State::DORMANT_LOCAL;
 	assert(state == State::DORMANT_LOCAL);                                      // 1: initial/local topology
 	assert(FSolPhasePortalStateMachine::Advance(state, false, 0, 0, -1, 0, thresholds) == state);
 	assert(!FSolPhasePortalStateMachine::IsVisualActive(state, true, true));    // 2: initial visual/traversal gate
 	assert(!FSolPhasePortalStateMachine::IsTraversalActive(state, true, true));
+	assert(FSolPhasePortalStateMachine::CrossesIntoLocalInterior(-0.1, 0.1));
+	assert(FSolPhasePortalStateMachine::CrossesIntoLocalInterior(0.0, 0.1));
+	assert(!FSolPhasePortalStateMachine::CrossesIntoLocalInterior(-0.1, 0.0));
+	assert(FSolPhasePortalStateMachine::CrossesOutOfLocalInterior(0.1, -0.1));
+	assert(!FSolPhasePortalStateMachine::CrossesOutOfLocalInterior(0.1, 0.0));
+	assert(FSolPhasePortalStateMachine::IsIntendedOutgoingCrossing(true, false, -1, 1));
+	assert(FSolPhasePortalStateMachine::IsIntendedOutgoingCrossing(true, true, 0, 1)); // exact trace intercept
+	assert(!FSolPhasePortalStateMachine::IsIntendedOutgoingCrossing(true, true, 4, 1));
+	assert(!FSolPhasePortalStateMachine::IsIntendedOutgoingCrossing(true, true, 0, -1));
 
 	// 3: Forward movement and an inward-facing player enter the local room.
 	state = FSolPhasePortalStateMachine::Advance(state, true, 0.8, 0.7, 8, 0, thresholds);
 	assert(state == State::ENTERED_FORWARD);
 
 	// 5: Retreating before the arm depth removes the pending illusion.
+	state = FSolPhasePortalStateMachine::Advance(state, false, 0, 0, -0.5, 0, thresholds);
+	assert(state == State::DORMANT_LOCAL);
+	state = State::ARMED_INSIDE;
 	state = FSolPhasePortalStateMachine::Advance(state, false, 0, 0, -0.5, 0, thresholds);
 	assert(state == State::DORMANT_LOCAL);
 
@@ -44,7 +62,7 @@ int main()
 	assert(!FSolPhasePortalStateMachine::IsTraversalActive(state, true, false));
 	assert(!FSolPhasePortalStateMachine::IsTraversalActive(state, false, true)); // 14: backward anchor probe remains local
 
-	// 18: Save/restore is a stable enum value. 12: a successful stock portal
+	// 12: a successful stock portal
 	// transform resets phase atomically before the next frame can observe it.
 	const auto saved = uint8_t(state);
 	state = State(saved);

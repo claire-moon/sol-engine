@@ -1114,6 +1114,11 @@ void R_SetupFrame(FRenderViewpoint& viewPoint, const FViewWindow& viewWindow, AA
 	if (viewPoint.camera->player != nullptr)
 		player = viewPoint.camera->player;
 
+	// Keep the logical player owner with every render viewpoint.  Portal
+	// recursion copies this context, while camera textures with no owner stay
+	// null and therefore cannot reveal a player-scoped SOL phase portal.
+	viewPoint.player = player != nullptr ? player : (matchPlayer ? &players[consoleplayer] : nullptr);
+
 	if (iView->prevTic == -1 || r_NoInterpolate || (viewPoint.camera->renderflags & RF_NOINTERPOLATEVIEW))
 	{
 		viewPoint.camera->renderflags &= ~RF_NOINTERPOLATEVIEW;

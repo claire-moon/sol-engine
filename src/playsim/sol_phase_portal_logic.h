@@ -23,6 +23,34 @@ struct FSolPhasePortalThresholds
 class FSolPhasePortalStateMachine
 {
 public:
+	static constexpr double ExactInterceptEpsilon = 1.e-6;
+
+	// A local phase doorway only changes state after the player's committed
+	// movement crosses its threshold.  Keep the endpoint convention here so
+	// both the playsim integration and the deterministic regression test agree
+	// about a movement beginning exactly on the threshold.
+	static bool CrossesIntoLocalInterior(double oldSignedDepth, double newSignedDepth)
+	{
+		return oldSignedDepth <= ExactInterceptEpsilon && newSignedDepth > ExactInterceptEpsilon;
+	}
+
+	static bool CrossesOutOfLocalInterior(double oldSignedDepth, double newSignedDepth)
+	{
+		return oldSignedDepth >= -ExactInterceptEpsilon && newSignedDepth < -ExactInterceptEpsilon;
+	}
+
+	static ESolPhasePortalState FromStoredValue(uint8_t value)
+	{
+		switch (value)
+		{
+		case uint8_t(ESolPhasePortalState::DORMANT_LOCAL): return ESolPhasePortalState::DORMANT_LOCAL;
+		case uint8_t(ESolPhasePortalState::ENTERED_FORWARD): return ESolPhasePortalState::ENTERED_FORWARD;
+		case uint8_t(ESolPhasePortalState::ARMED_INSIDE): return ESolPhasePortalState::ARMED_INSIDE;
+		case uint8_t(ESolPhasePortalState::REVEALED_REMOTE): return ESolPhasePortalState::REVEALED_REMOTE;
+		default: return ESolPhasePortalState::DORMANT_LOCAL;
+		}
+	}
+
 	static bool IsVisualActive(ESolPhasePortalState state, bool isSource, bool viewIsInside)
 	{
 		return state == ESolPhasePortalState::REVEALED_REMOTE && isSource && viewIsInside;
@@ -31,6 +59,16 @@ public:
 	static bool IsTraversalActive(ESolPhasePortalState state, bool isSource, bool crossesInsideToOutside)
 	{
 		return state == ESolPhasePortalState::REVEALED_REMOTE && isSource && crossesInsideToOutside;
+	}
+
+	// Actors hand us an endpoint beyond the line, but generic traces hand us
+	// their exact intercept. The latter is geometrically on side 0, so accept
+	// it only if the ray was outward and reached the threshold itself.
+	static bool IsIntendedOutgoingCrossing(bool oldIsInside, bool newIsInside,
+		double signedNewDepth, double outwardMovementDot)
+	{
+		return oldIsInside && (!newIsInside ||
+			(signedNewDepth <= ExactInterceptEpsilon && outwardMovementDot > ExactInterceptEpsilon));
 	}
 
 	static ESolPhasePortalState StateAfterSuccessfulTraversal()
@@ -62,6 +100,8 @@ public:
 			break;
 		case ESolPhasePortalState::REVEALED_REMOTE:
 			break;
+		default:
+			return ESolPhasePortalState::DORMANT_LOCAL;
 		}
 		return state;
 	}

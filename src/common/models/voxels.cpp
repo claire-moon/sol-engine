@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <algorithm>
 #include <ctype.h>
+#include <mutex>
 
 #include "m_swap.h"
 #include "m_argv.h"
@@ -367,8 +368,13 @@ uint8_t *FVoxelMipLevel::GetSlabData(bool wantremapped) const
 
 void FVoxel::CreateBgraSlabData()
 {
+	// Software render worker threads can encounter the same voxel in their
+	// first frame.  The BGRA cache is populated lazily, so protect both the
+	// state flag and the TArray construction as one operation.
+	static std::mutex bgraBuildMutex;
+	std::lock_guard<std::mutex> lock(bgraBuildMutex);
+
 	if (Bgramade) return;
-	Bgramade = true;
 	for (int i = 0; i < NumMips; ++i)
 	{
 		int size = Mips[i].OffsetX[Mips[i].SizeX];
@@ -413,6 +419,7 @@ void FVoxel::CreateBgraSlabData()
 			size -= slabzleng;
 		}
 	}
+	Bgramade = true;
 }
 
 //==========================================================================
@@ -423,8 +430,13 @@ void FVoxel::CreateBgraSlabData()
 
 void FVoxel::Remap()
 {
+	// GetVoxelRemap also owns a small shared cache.  Keep the complete lazy
+	// remap operation serialized so another software render worker cannot
+	// observe a partially resized slab array or overwrite that shared cache.
+	static std::mutex remapBuildMutex;
+	std::lock_guard<std::mutex> lock(remapBuildMutex);
+
 	if (Remapped) return;
-	Remapped = true;
 	if (Palette.Size())
 	{
 		uint8_t *remap = GetVoxelRemap(Palette.Data());
@@ -438,6 +450,7 @@ void FVoxel::Remap()
 			RemapVoxelSlabs((kvxslab_t *)&Mips[i].SlabDataRemapped[0], Mips[i].OffsetX[Mips[i].SizeX], remap);
 		}
 	}
+	Remapped = true;
 }
 
 //==========================================================================

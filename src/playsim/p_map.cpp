@@ -80,9 +80,6 @@ static FRandom pr_crunch("DoCrunch");
 // but don't process them until the move is proven valid
 TArray<spechit_t> spechit;
 TArray<spechit_t> portalhit;
-// This is only a per-move candidate list. Durable SOL phase state is owned by
-// FLevelLocals::PhasePortals, never by portal flags or a static global.
-static TArray<spechit_t> solphasehit;
 
 EXTERN_CVAR(Bool, net_limitconversations)
 EXTERN_CVAR(Bool, haptics_do_menus)
@@ -1094,14 +1091,7 @@ bool PIT_CheckLine(FMultiBlockLinesIterator &mit, FMultiBlockLinesIterator::Chec
 	}
 	const DVector2 oldPortalPos = tm.thing->PosRelative(ld).XY();
 	const DVector2 newPortalPos = cres.Position.XY();
-	if (P_IsSolPhasePortalLine(ld) && !P_IsLinePortalPassableForActor(tm.thing, ld, oldPortalPos, newPortalPos))
-	{
-		spec.line = ld;
-		spec.Refpos = newPortalPos;
-		spec.Oldrefpos = oldPortalPos;
-		solphasehit.Push(spec);
-	}
-	else if (P_IsLinePortalPassableForActor(tm.thing, ld, oldPortalPos, newPortalPos))
+	if (P_IsLinePortalPassableForActor(tm.thing, ld, oldPortalPos, newPortalPos))
 	{
 		spec.line = ld;
 		spec.Refpos = newPortalPos;
@@ -1859,7 +1849,6 @@ bool P_CheckPosition(AActor *thing, const DVector2 &pos, FCheckPosition &tm, boo
 	// Remove all old entries before returning.
 	spechit.Clear();
 	portalhit.Clear();
-	solphasehit.Clear();
 
 	if ((thing->flags & MF_NOCLIP) && !(thing->flags & MF_SKULLFLY))
 		return true;
@@ -2576,14 +2565,10 @@ bool P_TryMove(AActor *thing, const DVector2 &pos,
 	bool portalcrossed;
 	portalcrossed = false;
 
-	// A dormant phase source is still an ordinary local two-sided line. Commit
-	// the forward-entry transition only after P_TryMove has accepted that local
-	// movement; failed collision checks must not arm an illusion.
-	for (auto &spec : solphasehit)
-	{
-		P_NotifySolPhasePortalLocalCrossing(thing, spec.line, spec.Oldrefpos, spec.Refpos);
-	}
-	solphasehit.Clear();
+	// A dormant phase source remains an ordinary local two-sided doorway.
+	// Commit phase entry/retreat only after the move has cleared collision, from
+	// the actual old-to-new centre path rather than a radius-contact candidate.
+	P_NotifySolPhasePortalLocalMovement(thing, thing->Pos().XY(), tm.pos.XY());
 
 	while (true)
 	{

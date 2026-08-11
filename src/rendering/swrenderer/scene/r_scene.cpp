@@ -156,6 +156,15 @@ namespace swrenderer
 		else if (r_scene_multithreaded != 1)
 			numThreads = r_scene_multithreaded;
 
+		// A line portal child inherits and rewrites the parent slice's clip
+		// state.  The inherited software renderer can split an ordinary scene,
+		// but a revealed SOL phase portal is player-scoped and may cover several
+		// independently prepared root slices.  Render that rare revealed view
+		// as one coherent slice so no portal columns are left unfilled.  Dormant
+		// phase doorways and every ordinary portal retain normal multithreading.
+		if (P_HasSolPhasePortalVisibleForView(MainThread()->Viewport->viewpoint))
+			numThreads = 1;
+
 		if (numThreads != (int)Threads.size())
 		{
 			StopThreads();
