@@ -235,7 +235,7 @@ bool SightCheck::PTR_SightTraverse (intercept_t *in)
 		if (open.bottom != LINEOPEN_MIN) open.bottom = open.top;
 	}
 
-	FLinePortal *lport = li->getPortal();
+	FLinePortal *lport = P_IsSolPhasePortalSourceLine(li) ? nullptr : li->getPortal();
 
 	if (open.range == 0 && open.portalflags == 0 && (lport == nullptr || lport->mType != PORTT_LINKED))		// quick test for totally closed doors (must be delayed if portal checks are needed, though)
 		return false;		// stop

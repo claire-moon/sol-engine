@@ -21,10 +21,16 @@
 
 #include "basics.h"
 #include "m_bbox.h"
+#include "sol_phase_portal_logic.h"
 
 struct linebase_t;
 struct line_t;
 struct sector_t;
+class AActor;
+class player_t;
+class FSerializer;
+struct FLevelLocals;
+struct FRenderViewpoint;
 
 struct FPortalGroupArray;
 struct portnode_t;
@@ -232,6 +238,70 @@ struct FLinePortalSpan
 	int validcount = 0;
 };
 
+//============================================================================
+//
+// SOL phase portals
+//
+// A phase portal keeps its authored line portal intact, but makes its portal
+// meaning depend on the owning player's deterministic playsim state. This is
+// deliberately separate from FLinePortal::mFlags: those flags describe map
+// topology and are global, while phase state is per player.
+//
+// Maps opt in with retained UDMF user properties on a teleport portal source:
+//
+// user_sol_phase_role = "source" / "destination"
+// user_sol_phase_group = <stable positive id>
+// user_sol_phase_inside_side = 0
+// user_sol_phase_arm_depth = <map units>
+// user_sol_phase_entry_dot = <0..1>
+// user_sol_phase_reveal_dot = <0..1>
+//
+// The source must point at the destination through an ordinary PORTT_TELEPORT
+// line portal. Teleport traversal is side 0 -> side 1, so authors flip the
+// linedef as needed and keep the illusion-room interior on side 0. A
+// destination is only an ID-bearing two-sided anchor with no Line_SetPortal
+// special; it never becomes a reverse phase portal and stays locally crossable.
+//
+//============================================================================
+
+struct FSolPhasePortalDef
+{
+	int SourceLine = -1;
+	int DestinationLine = -1;
+	int Group = 0;
+	uint8_t InsideSide = 0;
+	FSolPhasePortalThresholds Thresholds;
+};
+
+class FSolPhasePortalSystem
+{
+public:
+	void Initialize(FLevelLocals *level);
+	void Tick();
+	bool IsPhaseSourceLine(const line_t *line) const;
+	bool IsVisualPortalActive(const line_t *line, const FRenderViewpoint &view) const;
+	bool HasVisualPortalForView(const FRenderViewpoint &view) const;
+	bool IsPassableForActor(const AActor *actor, const line_t *line, const DVector2 &oldPos, const DVector2 &newPos) const;
+	void NotifyLocalMovement(AActor *actor, const DVector2 &oldPos, const DVector2 &newPos);
+	void NotifyTraversal(AActor *actor, const line_t *line);
+	void PrintDebugStatus() const;
+	ESolPhasePortalState GetState(const AActor *actor, const line_t *line) const;
+	void Serialize(FSerializer &arc, const char *key);
+
+private:
+	int FindDefinition(const line_t *line) const;
+	int PlayerIndex(const AActor *actor) const;
+	ESolPhasePortalState GetState(int player, int definition) const;
+	void SetState(int player, int definition, ESolPhasePortalState state, const char *reason, double depth = 0.0, double movementDot = 0.0, double viewDot = 0.0);
+	double SignedDepth(const FSolPhasePortalDef &definition, const DVector2 &pos) const;
+	DVector2 InwardNormal(const FSolPhasePortalDef &definition) const;
+	void NormalizeStateStorage();
+
+	FLevelLocals *Level = nullptr;
+	TArray<FSolPhasePortalDef> Definitions;
+	TArray<TArray<uint8_t>> PlayerStates;
+};
+
 
 //============================================================================
 //
@@ -312,8 +382,19 @@ void P_TranslatePortalXY(line_t* src, double& vx, double& vy);
 void P_TranslatePortalVXVY(line_t* src, double &velx, double &vely);
 void P_TranslatePortalAngle(line_t* src, DAngle& angle);
 void P_TranslatePortalZ(line_t* src, double& vz);
-struct FLevelLocals;
 void InitPortalGroups(FLevelLocals *Level);
+
+// Central phase-aware portal queries. Existing non-phase portals retain the
+// upstream line_t behavior; phase lines return local topology until their
+// owning player has deterministically revealed the source portal.
+// Only an authored source participates in generic portal-line fast paths. A
+// destination anchor stays plain local two-sided topology at all times.
+bool P_IsSolPhasePortalSourceLine(const line_t *line);
+bool P_IsLinePortalVisibleForView(const line_t *line, const FRenderViewpoint &view);
+bool P_HasSolPhasePortalVisibleForView(const FRenderViewpoint &view);
+bool P_IsLinePortalPassableForActor(const AActor *actor, const line_t *line, const DVector2 &oldPos, const DVector2 &newPos);
+void P_NotifySolPhasePortalLocalMovement(AActor *actor, const DVector2 &oldPos, const DVector2 &newPos);
+void P_NotifySolPhasePortalTraversal(AActor *actor, const line_t *line);
 
 
 #endif

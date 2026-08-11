@@ -1089,11 +1089,13 @@ bool PIT_CheckLine(FMultiBlockLinesIterator &mit, FMultiBlockLinesIterator::Chec
 		spec.Oldrefpos = tm.thing->PosRelative(ld).XY();
 		spechit.Push(spec);
 	}
-	if (ld->isLinePortal())
+	const DVector2 oldPortalPos = tm.thing->PosRelative(ld).XY();
+	const DVector2 newPortalPos = cres.Position.XY();
+	if (P_IsLinePortalPassableForActor(tm.thing, ld, oldPortalPos, newPortalPos))
 	{
 		spec.line = ld;
-		spec.Refpos = cres.Position.XY();
-		spec.Oldrefpos = tm.thing->PosRelative(ld).XY();
+		spec.Refpos = newPortalPos;
+		spec.Oldrefpos = oldPortalPos;
 		portalhit.Push(spec);
 	}
 
@@ -1954,7 +1956,8 @@ bool P_CheckPosition(AActor *thing, const DVector2 &pos, FCheckPosition &tm, boo
 		if (thisresult)
 		{
 			FLinePortal *port = lcres.line->getPortal();
-			if (port != NULL && port->mFlags & PORTF_PASSABLE && port->mType != PORTT_LINKED)
+			if (port != NULL && port->mFlags & PORTF_PASSABLE && port->mType != PORTT_LINKED &&
+				P_IsLinePortalPassableForActor(thing, lcres.line, thing->PosRelative(lcres.line).XY(), lcres.Position.XY()))
 			{
 				// Checking the other side of the portal completely is too costly,
 				// but checking the portal's destination line is necessary to
@@ -2562,6 +2565,11 @@ bool P_TryMove(AActor *thing, const DVector2 &pos,
 	bool portalcrossed;
 	portalcrossed = false;
 
+	// A dormant phase source remains an ordinary local two-sided doorway.
+	// Commit phase entry/retreat only after the move has cleared collision, from
+	// the actual old-to-new centre path rather than a radius-contact candidate.
+	P_NotifySolPhasePortalLocalMovement(thing, thing->Pos().XY(), tm.pos.XY());
+
 	while (true)
 	{
 		double bestfrac = 1.1;
@@ -2637,6 +2645,7 @@ bool P_TryMove(AActor *thing, const DVector2 &pos,
 				thing->LinkToWorld(&ctx);
 				P_FindFloorCeiling(thing);
 				thing->ClearInterpolation();
+				P_NotifySolPhasePortalTraversal(thing, ld);
 				portalcrossed = true;
 				tm.portalstep = false;
 			}
@@ -4096,6 +4105,8 @@ struct aim_t
 
 	void EnterLinePortal(line_t *li, double frac)
 	{
+		if (!P_IsLinePortalPassableForActor(shootthing, li, startpos.XY(), (startpos + aimtrace * frac).XY()))
+			return;
 		aim_t newtrace = Clone();
 
 		FLinePortal *port = li->getPortal();
@@ -4260,7 +4271,7 @@ struct aim_t
 				if (aimdebug)
 					Printf("Found line %d: toppitch = %f, bottompitch = %f\n", li->Index(), toppitch.Degrees(), bottompitch.Degrees());
 
-				if (li->isLinePortal() && frontflag == 0)
+				if (P_IsLinePortalPassableForActor(shootthing, li, startpos.XY(), it.InterceptPoint(in)) && frontflag == 0)
 				{
 					EnterLinePortal(li, in->frac);
 					return;
@@ -5789,7 +5800,8 @@ bool P_UseTraverse(AActor *usething, const DVector2 &start, const DVector2 &end,
 			continue;
 		}
 
-		if (it.PortalRelocate(in, PT_ADDLINES | PT_ADDTHINGS, &xpos))
+		if (P_IsLinePortalPassableForActor(usething, in->d.line, xpos.XY(), it.InterceptPoint(in)) &&
+			it.PortalRelocate(in, PT_ADDLINES | PT_ADDTHINGS, &xpos))
 		{
 			continue;
 		}
@@ -5910,7 +5922,7 @@ bool P_NoWayTraverse(AActor *usething, const DVector2 &start, const DVector2 &en
 		// [GrafZahl] de-obfuscated. Was I the only one who was unable to make sense out of
 		// this convoluted mess?
 		if (ld->special) continue;
-		if (ld->isLinePortal()) return false;
+		if (P_IsLinePortalPassableForActor(usething, ld, start, end)) return false;
 		if (ld->flags&(ML_BLOCKING | ML_BLOCKEVERYTHING | ML_BLOCK_PLAYERS)) return true;
 		P_LineOpening(open, NULL, ld, it.InterceptPoint(in));
 		if (open.range <= 0 ||

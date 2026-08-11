@@ -90,7 +90,7 @@ namespace swrenderer
 			if (!line) continue;
 
 			// check if this line will clip sprites to itself
-			if (!line->isVisualPortal() && line->special != Line_Mirror)
+			if (!P_IsLinePortalVisibleForView(line, Thread->Viewport->viewpoint) && line->special != Line_Mirror)
 				continue;
 
 			// don't clip sprites with portal's back side (it's transparent)

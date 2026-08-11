@@ -164,7 +164,7 @@ static void P_RecursiveSound(sector_t *sec, AActor *soundtarget, bool splash, AA
 
 		// ... and line portals;
 		FLinePortal *port = check->getPortal();
-		if (port && (port->mFlags & PORTF_SOUNDTRAVERSE))
+		if (!P_IsSolPhasePortalSourceLine(check) && port && (port->mFlags & PORTF_SOUNDTRAVERSE))
 		{
 			if (port->mDestination)
 			{

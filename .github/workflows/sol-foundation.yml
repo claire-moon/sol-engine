@@ -103,6 +103,8 @@ jobs:
           grep -F '#define SOLDEFAULTS_CONTRACT 1' src/version.h
           grep -F '#define SOL_GEOMETRY_CONTRACT 1' src/version.h
           grep -F 'map E1M1 "TESTMAP"' sol/game/MAPINFO
+          grep -F 'AddEventHandlers = "SolBootstrap"' sol/game/MAPINFO
+          ! grep -F 'PlayerClasses' sol/game/MAPINFO
           grep -F '{ 19, "wadpack", "precise-crosshair"' src/d_main.cpp
           grep -F '{ 21, "runtime", "sol-runtime"' src/d_main.cpp
           grep -F '{ 22, "content", "sol-content"' src/d_main.cpp
@@ -115,7 +117,13 @@ jobs:
       - name: Validate procedural North Star startup
         run: |
           grep -F 'ParticleCount = 768' src/common/startscreen/startscreen_generic.cpp
-          grep -F 'DrawParticles' src/common/startscreen/startscreen_generic.cpp
+          grep -F 'AnimationFrames = 30' src/common/startscreen/startscreen_generic.cpp
+          grep -F 'FrameDelayMilliseconds = 12' src/common/startscreen/startscreen_generic.cpp
+          grep -F 'DrawParticles(0.0);' src/common/startscreen/startscreen_generic.cpp
+          grep -F 'progress * AnimationFrames' src/common/startscreen/startscreen_generic.cpp
+          grep -F 'PresentParticles(double(frame) / double(AnimationFrames));' src/common/startscreen/startscreen_generic.cpp
+          grep -F 'std::this_thread::sleep_for' src/common/startscreen/startscreen_generic.cpp
+          grep -F 'Render(true);' src/common/startscreen/startscreen_generic.cpp
           ! grep -F '"BOOTLOGO"' src/common/startscreen/startscreen_generic.cpp
           ! grep -F 'Theme::getAccent' src/common/startscreen/startscreen_generic.cpp
           test -s branding/sol/sol-northstar.svg
@@ -127,13 +135,20 @@ jobs:
           test -s docs/sol/non-euclidean.md
           grep -F 'Line_SetPortal' docs/sol/non-euclidean.md
           grep -F 'PORTT_LINKED' docs/sol/non-euclidean.md
+          grep -F 'PORTT_TELEPORT' docs/sol/non-euclidean.md
+          grep -F 'user_sol_phase_role' docs/sol/non-euclidean.md
           grep -F 'TESTMAP' docs/sol/non-euclidean.md
+          grep -F '9011 and 9012' docs/sol/non-euclidean.md
+          grep -F 'Door_Open' docs/sol/non-euclidean.md
+          ! grep -F 'sollocaltraversal' src/playsim/p_map.cpp
       - name: Test bundle contract 2 and wadpack contract 3
         run: bash tests/test-sol-bundle-v04.sh
       - name: Test native development launcher
         run: bash tests/test-sol-launcher.sh
       - name: Validate story foundation
         run: bash tests/test-sol-story.sh
+      - name: Test SOL phase-portal state machine
+        run: bash tests/test-sol-phaseportal.sh
       - name: Package SOL!-owned runtime component
         run: bash tools/sol-runtime-package.sh
       - name: Inspect runtime component and defaults
@@ -148,3 +163,6 @@ jobs:
           unzip -Z1 "$archive" | grep -Fx zscript/sol/story_ids.zs
           unzip -Z1 "$archive" | grep -Fx zscript/sol/story_state.zs
           unzip -Z1 "$archive" | grep -Fx zscript/sol/bootstrap.zs
+          if unzip -Z1 "$archive" | grep -Fx zscript/sol/portal_guard.zs; then
+            exit 1
+          fi

@@ -152,7 +152,7 @@ void HWDrawInfo::WorkerThread()
 			front = hw_FakeFlat(job->sub->sector, in_area, false);
 			auto seg = job->seg;
 			auto backsector = seg->backsector;
-			if (!backsector && seg->linedef->isVisualPortal() && seg->sidedef == seg->linedef->sidedef[0]) // For one-sided portals use the portal's destination sector as backsector.
+			if (!backsector && P_IsLinePortalVisibleForView(seg->linedef, Viewpoint) && seg->sidedef == seg->linedef->sidedef[0]) // For one-sided portals use the portal's destination sector as backsector.
 			{
 				auto portal = seg->linedef->getPortal();
 				backsector = portal->mDestination->frontsector;
@@ -344,7 +344,7 @@ void HWDrawInfo::AddLine (seg_t *seg, bool portalclip)
 	{
 		if (currentsector->sectornum == seg->backsector->sectornum)
 		{
-			if (!seg->linedef->isVisualPortal())
+			if (!P_IsLinePortalVisibleForView(seg->linedef, Viewpoint))
 			{
 				auto tex = TexMan.GetGameTexture(seg->sidedef->GetTexture(side_t::mid), true);
 				if (!tex || !tex->isValid())

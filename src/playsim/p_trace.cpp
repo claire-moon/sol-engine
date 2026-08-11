@@ -836,7 +836,11 @@ bool FTraceInfo::TraceTraverse (int ptflags)
 
 		if (in->isaline)
 		{
-			if (in->d.line->isLinePortal() && P_PointOnLineSidePrecise(Start, in->d.line) == 0)
+			// Trace callers identify their originating actor through IgnoreThis.
+			// That lets a revealed player-owned hitscan reuse the normal line
+			// portal transform while unowned traces deterministically keep the
+			// phase line's local topology.
+			if (P_IsLinePortalPassableForActor(IgnoreThis, in->d.line, Start.XY(), hit.XY()) && P_PointOnLineSidePrecise(Start, in->d.line) == 0)
 			{
 				sector_t* entersector = in->d.line->backsector;
 				if (entersector == NULL || (hit.Z >= entersector->floorplane.ZatPoint(hit) && hit.Z <= entersector->ceilingplane.ZatPoint(hit)))

@@ -2381,6 +2381,8 @@ size_t DSectorMarker::PropagateMark()
 
 void FLevelLocals::Tick ()
 {
+	PhasePortals.Tick();
+
 	// Reset carry sectors
 	if (Scrolls.Size() > 0)
 	{

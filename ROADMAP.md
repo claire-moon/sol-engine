@@ -79,17 +79,19 @@ and the first SOL! impossible-space primitive.
 - Replace bitmap startup artwork and the loading bar with a deterministic
   blue-white particle system that converges into the SOL! North Star as loading
   progresses; keep a separate clean white `sol-northstar.svg` vector mark.
-- Introduce geometry contract 1 around reciprocal linked line portals. Present
-  E1M1 as monster-free `TESTMAP` and use a remote linked-portal pair to prove an
-  impossible adjacency for later non-Euclidean episode design.
+- Introduce geometry contract 1: retain a conventional reciprocal linked-portal
+  laboratory and add a map-authored, per-player phase portal over teleport-style
+  semantics for the impossible-room doorway. Keep dormant physical topology and
+  automap adjacency local.
 - Keep upstream archives intact and hash-locked while SOL!-owned overlays load
   after them. Keep `THIRD_PARTY.md` embedded and fail public packaging closed
   when rights are unresolved.
 
 Exit gate: locked sources produce reproducible manifests and equivalent bundles
 on clean machines, retired/reserved slots never mount, the procedural startup
-contains no raster-logo/progress-bar dependency, and TESTMAP validates/traverses
-the reciprocal geometry-contract portal pair with zero monsters.
+contains no raster-logo/progress-bar dependency, and monster-free TESTMAP
+validates the phase source/destination anchor's local-backward behavior while
+9011/9012 retain conventional linked-portal traversal.
 
 ## `v0.5.0`: front end, display, audio baseline, and HUD shell
 

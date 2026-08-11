@@ -97,17 +97,20 @@ North Star on a transparent canvas.
 
 ## Geometry contract 1 and TESTMAP
 
-SOL! geometry contract 1 promotes reciprocal linked line portals to a supported
-impossible-space primitive. A linked pair joins physically remote map
-thresholds with continuous rendering and traversal, allowing the visible world
-topology to disagree with the editor's Euclidean layout. The contract is
-specified in `docs/sol/non-euclidean.md`.
+SOL! geometry contract 1 has two complementary primitives. Conventional
+reciprocal `PORTT_LINKED` portals preserve the inherited continuous world path.
+The opt-in per-player phase portal uses teleport-style line semantics while its
+source doorway stays physically local until deterministic forward entry, arm
+depth, and outward-facing conditions reveal it. Neither mechanism changes
+global portal flags. The contract is specified in `docs/sol/non-euclidean.md`.
 
 E1M1 is presented as `TESTMAP` for v0.4. It is deliberately monster-free and
-contains one reciprocal linked-portal pair. Its stock geometry, lighting,
-weapons, and 108 decorations remain available for renderer, ReLite, Universal
-Ambience, object, and resource testing while the impossible-space transition can
-be inspected without combat interference.
+contains phase source 9001 with destination-only anchor 9002, plus the separate
+reciprocal 9011/9012 linked-portal lab. Its stock geometry, lighting, weapons,
+and 120 decorations remain available for renderer, ReLite, Universal Ambience,
+object, and resource testing; the phase doorway's local route is intentionally
+kept clear so the impossible-space transitions can be inspected without combat
+or prop-collision interference.
 
 ## Canonical defaults
 

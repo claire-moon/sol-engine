@@ -22,8 +22,10 @@
 */
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstdint>
+#include <thread>
 
 #include "startscreen.h"
 
@@ -32,6 +34,9 @@ namespace
 constexpr int ScreenWidth = 640 * 2;
 constexpr int ScreenHeight = 480 * 2;
 constexpr int ParticleCount = 768;
+constexpr int AnimationFrames = 30;
+constexpr int FrameDelayMilliseconds = 12;
+constexpr int InitialFrameMilliseconds = 24;
 constexpr double Pi = 3.14159265358979323846;
 
 uint32_t Mix(uint32_t value)
@@ -91,24 +96,30 @@ public:
 	bool DoProgress(int advance) override;
 
 private:
-	void DrawParticles();
+	void DrawParticles(double progress);
+	void PresentParticles(double progress);
+
+	int DisplayedFrame = 0;
+	bool InitialFramePresented = false;
 };
 
 FGenericStartScreen::FGenericStartScreen(int max_progress)
 	: FStartScreen(max_progress)
 {
 	StartupBitmap.Create(ScreenWidth, ScreenHeight);
-	DrawParticles();
+	DrawParticles(0.0);
 }
 
-void FGenericStartScreen::DrawParticles()
+void FGenericStartScreen::DrawParticles(double requestedProgress)
 {
 	ClearBlock(StartupBitmap, { 0, 0, 0, 255 }, 0, 0, ScreenWidth, ScreenHeight);
 
-	const double rawProgress = MaxPos > 0 ? double(CurPos) / double(MaxPos) : 1.0;
-	const double progress = std::clamp(rawProgress, 0.0, 1.0);
+	const double progress = std::clamp(requestedProgress, 0.0, 1.0);
 	const double gather = 1.0 - std::pow(1.0 - progress, 3.0);
-	const double orbit = (1.0 - gather) * (150.0 + 80.0 * std::sin(progress * Pi));
+	const double swirlEnvelope = progress > 0.0 && progress < 1.0
+		? std::sin(progress * Pi)
+		: 0.0;
+	const double orbit = 72.0 * swirlEnvelope * (1.0 - gather * 0.45);
 	const double centerX = ScreenWidth * 0.5;
 	const double centerY = ScreenHeight * 0.46;
 
@@ -120,37 +131,99 @@ void FGenericStartScreen::DrawParticles()
 		const int ray = index & 7;
 		const double angle = -Pi * 0.5 + ray * Pi * 0.25;
 		const bool cardinal = (ray & 1) == 0;
-		const double rayLength = cardinal ? (ray == 0 ? 270.0 : ray == 2 || ray == 6 ? 210.0 : 235.0) : 115.0;
+		const double rayLength = cardinal
+			? (ray == 0 ? 270.0 : ray == 2 || ray == 6 ? 210.0 : 235.0)
+			: 115.0;
 		const double along = std::pow(Unit(seed + 3u), 1.65);
 		const double taper = (1.0 - along) * (cardinal ? 12.0 : 8.0);
 		const double across = (Unit(seed + 4u) * 2.0 - 1.0) * taper;
-		const double targetX = centerX + std::cos(angle) * rayLength * along - std::sin(angle) * across;
-		const double targetY = centerY + std::sin(angle) * rayLength * along + std::cos(angle) * across;
-		const double phase = Unit(seed + 5u) * Pi * 2.0 + progress * Pi * 3.0;
-		const double swirlX = std::cos(phase) * orbit * (0.3 + Unit(seed + 6u) * 0.7);
-		const double swirlY = std::sin(phase) * orbit * (0.3 + Unit(seed + 7u) * 0.7);
-		const double x = startX + (targetX - startX) * gather + swirlX * (1.0 - progress);
-		const double y = startY + (targetY - startY) * gather + swirlY * (1.0 - progress);
-		const double brightness = 0.35 + 0.65 * gather * (0.55 + 0.45 * (1.0 - along));
+		const double targetX = centerX + std::cos(angle) * rayLength * along
+			- std::sin(angle) * across;
+		const double targetY = centerY + std::sin(angle) * rayLength * along
+			+ std::cos(angle) * across;
+		const double phase = Unit(seed + 5u) * Pi * 2.0 + progress * Pi * 2.0;
+		const double orbitScale = 0.25 + Unit(seed + 6u) * 0.75;
+		const double swirlX = std::cos(phase) * orbit * orbitScale;
+		const double swirlY = std::sin(phase) * orbit * orbitScale;
+		const double x = startX + (targetX - startX) * gather + swirlX;
+		const double y = startY + (targetY - startY) * gather + swirlY;
+		const double brightness = 0.28 + 0.72 * gather
+			* (0.55 + 0.45 * (1.0 - along));
 
-		DrawGlowParticle(StartupBitmap, static_cast<int>(std::lround(x)), static_cast<int>(std::lround(y)), brightness);
+		DrawGlowParticle(
+			StartupBitmap,
+			static_cast<int>(std::lround(x)),
+			static_cast<int>(std::lround(y)),
+			brightness);
 	}
 
-	const int flareRadius = static_cast<int>(4.0 + gather * 18.0);
-	for (int offset = -flareRadius; offset <= flareRadius; ++offset)
+	if (gather > 0.0)
 	{
-		const double strength = 1.0 - std::abs(offset) / double(flareRadius + 1);
-		DrawGlowParticle(StartupBitmap, static_cast<int>(centerX) + offset, static_cast<int>(centerY), strength * gather);
-		DrawGlowParticle(StartupBitmap, static_cast<int>(centerX), static_cast<int>(centerY) + offset, strength * gather);
+		const int flareRadius = static_cast<int>(2.0 + gather * 20.0);
+
+		for (int offset = -flareRadius; offset <= flareRadius; ++offset)
+		{
+			const double strength = 1.0 - std::abs(offset) / double(flareRadius + 1);
+			DrawGlowParticle(
+				StartupBitmap,
+				static_cast<int>(centerX) + offset,
+				static_cast<int>(centerY),
+				strength * gather);
+			DrawGlowParticle(
+				StartupBitmap,
+				static_cast<int>(centerX),
+				static_cast<int>(centerY) + offset,
+				strength * gather);
+		}
 	}
+}
+
+void FGenericStartScreen::PresentParticles(double progress)
+{
+	DrawParticles(progress);
+	delete StartupTexture;
+	StartupTexture = nullptr;
+	Render(true);
 }
 
 bool FGenericStartScreen::DoProgress(int advance)
 {
+	if (!InitialFramePresented)
+	{
+		PresentParticles(0.0);
+		std::this_thread::sleep_for(std::chrono::milliseconds(InitialFrameMilliseconds));
+		InitialFramePresented = true;
+	}
+
 	FStartScreen::DoProgress(advance);
-	DrawParticles();
-	delete StartupTexture;
-	StartupTexture = nullptr;
+
+	const double rawProgress = MaxPos > 0 ? double(CurPos) / double(MaxPos) : 1.0;
+	const double progress = std::clamp(rawProgress, 0.0, 1.0);
+	const int targetFrame = std::clamp(
+		static_cast<int>(std::lround(progress * AnimationFrames)),
+		0,
+		AnimationFrames);
+
+	if (targetFrame < DisplayedFrame)
+	{
+		DisplayedFrame = targetFrame;
+		PresentParticles(double(DisplayedFrame) / double(AnimationFrames));
+		return true;
+	}
+
+	for (int frame = DisplayedFrame + 1;
+		frame <= targetFrame && frame <= AnimationFrames;
+		++frame)
+	{
+		PresentParticles(double(frame) / double(AnimationFrames));
+
+		if (frame < AnimationFrames)
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(FrameDelayMilliseconds));
+		}
+	}
+
+	DisplayedFrame = targetFrame;
 	return true;
 }
 

@@ -19,6 +19,7 @@
 
 #include "g_levellocals.h"
 #include "p_maputl.h"
+#include "portal.h"
 #include "actor.h"
 
 //=============================================================================
@@ -391,6 +392,12 @@ void AActor::UpdateRenderSectorList()
 				for (auto &p : Level->linePortals)
 				{
 					if (p.mType == PORTT_VISUAL) continue;
+					// Phase portal visibility belongs to a particular owning player and
+					// view. Actor render-sector links are global cached topology, so
+					// never let an unowned actor acquire a remote phase-space link.
+					// The portal wall itself will create its normal view-owned portal
+					// recursion only after the phase predicate reveals it.
+					if (P_IsSolPhasePortalSourceLine(p.mOrigin)) continue;
 					if (inRange(bb, p.mOrigin) && BoxOnLineSide(bb, p.mOrigin))
 					{
 						touching_lineportallist = P_AddPortalnode(&p, this, touching_lineportallist);
