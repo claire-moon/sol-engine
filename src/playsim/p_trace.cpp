@@ -836,7 +836,7 @@ bool FTraceInfo::TraceTraverse (int ptflags)
 
 		if (in->isaline)
 		{
-			if (in->d.line->isLinePortal() && P_PointOnLineSidePrecise(Start, in->d.line) == 0)
+			if (!P_IsSolPhasePortalLine(in->d.line) && in->d.line->isLinePortal() && P_PointOnLineSidePrecise(Start, in->d.line) == 0)
 			{
 				sector_t* entersector = in->d.line->backsector;
 				if (entersector == NULL || (hit.Z >= entersector->floorplane.ZatPoint(hit) && hit.Z <= entersector->ceilingplane.ZatPoint(hit)))

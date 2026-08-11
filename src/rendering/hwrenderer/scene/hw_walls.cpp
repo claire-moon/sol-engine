@@ -1607,7 +1607,7 @@ void HWWall::DoMidTexture(HWWallDispatcher *di, seg_t * seg, bool drawfogboundar
 		tci.mScale.Y = -tci.mScale.Y;
 		flags |= HWF_NOSLICE;
 	}
-	if (seg->linedef->isVisualPortal())
+	if (P_IsLinePortalVisibleForView(seg->linedef, di->di->Viewpoint))
 	{
 		// mid textures on portal lines need the same offsetting as mid textures on sky lines
 		flags |= HWF_SKYHACK;
@@ -2259,7 +2259,7 @@ void HWWall::Process(HWWallDispatcher *di, seg_t *seg, sector_t * frontsector, s
 		return;
 	}
 
-	bool isportal = seg->linedef->isVisualPortal() && seg->sidedef == seg->linedef->sidedef[0];
+	bool isportal = P_IsLinePortalVisibleForView(seg->linedef, di->di->Viewpoint) && seg->sidedef == seg->linedef->sidedef[0];
 
 	//return;
 	// [GZ] 3D middle textures are necessarily two-sided, even if they lack the explicit two-sided flag

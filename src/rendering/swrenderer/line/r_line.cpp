@@ -179,7 +179,7 @@ namespace swrenderer
 		if (!mBackSector) return false;
 
 		// Portal
-		if (mLineSegment->linedef->isVisualPortal() && mLineSegment->sidedef == mLineSegment->linedef->sidedef[0]) return false;
+		if (P_IsLinePortalVisibleForView(mLineSegment->linedef, Thread->Viewport->viewpoint) && mLineSegment->sidedef == mLineSegment->linedef->sidedef[0]) return false;
 
 		// Closed door.
 		if (mBackCeilingZ1 <= mFrontFloorZ1 && mBackCeilingZ2 <= mFrontFloorZ2) return false;
@@ -217,7 +217,7 @@ namespace swrenderer
 		if (mBackSector == nullptr) return true;
 
 		// Portal
-		if (mLineSegment->linedef->isVisualPortal() && mLineSegment->sidedef == mLineSegment->linedef->sidedef[0]) return true;
+		if (P_IsLinePortalVisibleForView(mLineSegment->linedef, Thread->Viewport->viewpoint) && mLineSegment->sidedef == mLineSegment->linedef->sidedef[0]) return true;
 
 		// Closed door
 		if (mBackCeilingZ1 <= mFrontFloorZ1 && mBackCeilingZ2 <= mFrontFloorZ2) return true;
@@ -232,7 +232,7 @@ namespace swrenderer
 		if (!mBackSector) return false;
 
 		// Portal
-		if (mLineSegment->linedef->isVisualPortal() && mLineSegment->sidedef == mLineSegment->linedef->sidedef[0]) return false;
+		if (P_IsLinePortalVisibleForView(mLineSegment->linedef, Thread->Viewport->viewpoint) && mLineSegment->sidedef == mLineSegment->linedef->sidedef[0]) return false;
 
 		// Closed door.
 		if (mBackCeilingZ1 <= mFrontFloorZ1 && mBackCeilingZ2 <= mFrontFloorZ2) return false;
@@ -474,7 +474,7 @@ namespace swrenderer
 		}
 		else // two-sided line
 		{
-			if (linedef->isVisualPortal()) return true;
+			if (P_IsLinePortalVisibleForView(linedef, Thread->Viewport->viewpoint)) return true;
 
 			// closed door
 			if (mBackCeilingZ1 <= mFrontFloorZ1 && mBackCeilingZ2 <= mFrontFloorZ2) return true;
@@ -531,7 +531,7 @@ namespace swrenderer
 		}
 		else // two-sided line
 		{
-			if (linedef->isVisualPortal()) return true;
+			if (P_IsLinePortalVisibleForView(linedef, Thread->Viewport->viewpoint)) return true;
 
 			// closed door
 			if (mBackCeilingZ1 <= mFrontFloorZ1 && mBackCeilingZ2 <= mFrontFloorZ2) return true;
@@ -579,7 +579,7 @@ namespace swrenderer
 		}
 		else
 		{
-			return linedef->isVisualPortal();
+			return P_IsLinePortalVisibleForView(linedef, Thread->Viewport->viewpoint);
 		}
 	}
 
@@ -692,7 +692,7 @@ namespace swrenderer
 		line_t *linedef = mLineSegment->linedef;
 
 		// [RH] Horizon lines do not need to be textured
-		if (linedef->isVisualPortal()) return;
+		if (P_IsLinePortalVisibleForView(linedef, Thread->Viewport->viewpoint)) return;
 		if (linedef->special == Line_Horizon) return;
 
 		auto tex = GetPalettedSWTexture(sidedef->GetTexture(side_t::mid), true);

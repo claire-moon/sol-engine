@@ -3246,6 +3246,7 @@ void MapLoader::LoadLevel(MapData *map, const char *lumpname, int position)
 	PO_Init();				// Initialize the polyobjs
 	if (!Level->IsReentering())
 		Level->FinalizePortals();	// finalize line portals after polyobjects have been initialized. This info is needed for properly flagging them.
+	Level->PhasePortals.Initialize(Level);
 
 	Level->aabbTree = new DoomLevelAABBTree(Level);
 	Level->levelMesh = new DoomLevelMesh(*Level);

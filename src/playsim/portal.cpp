@@ -28,7 +28,12 @@
 #include "p_maputl.h"
 #include "p_spec.h"
 #include "g_levellocals.h"
+#include "p_setup.h"
+#include "r_utility.h"
+#include "serializer.h"
 #include "vm.h"
+
+CVAR(Int, sol_phaseportal_debug, 0, CVAR_ARCHIVE)
 
 DEFINE_FIELD(FSectorPortal, mType);
 DEFINE_FIELD(FSectorPortal, mFlags);
@@ -50,6 +55,327 @@ DEFINE_FIELD(FLinePortal, mAlign);
 DEFINE_FIELD(FLinePortal, mAngleDiff);
 DEFINE_FIELD(FLinePortal, mSinRot);
 DEFINE_FIELD(FLinePortal, mCosRot);
+
+namespace
+{
+const char *SolPhaseStateName(ESolPhasePortalState state)
+{
+	switch (state)
+	{
+	case ESolPhasePortalState::DORMANT_LOCAL: return "DORMANT_LOCAL";
+	case ESolPhasePortalState::ENTERED_FORWARD: return "ENTERED_FORWARD";
+	case ESolPhasePortalState::ARMED_INSIDE: return "ARMED_INSIDE";
+	case ESolPhasePortalState::REVEALED_REMOTE: return "REVEALED_REMOTE";
+	}
+	return "UNKNOWN";
+}
+
+double SolPhaseDot(const DVector2 &a, const DVector2 &b)
+{
+	return a.X * b.X + a.Y * b.Y;
+}
+
+DVector2 SolPhaseNormalize(const DVector2 &value)
+{
+	double length = value.Length();
+	return length > EQUAL_EPSILON ? value / length : DVector2(0.0, 0.0);
+}
+
+bool SolPhaseRoleIs(const FLevelLocals *level, const line_t *line, const char *role)
+{
+	static const FName roleKey = "user_sol_phase_role";
+	return stricmp(GetUDMFString(const_cast<FLevelLocals *>(level), UDMF_Line, line->Index(), roleKey).GetChars(), role) == 0;
+}
+}
+
+//============================================================================
+//
+// SOL phase portal system
+//
+//============================================================================
+
+void FSolPhasePortalSystem::NormalizeStateStorage()
+{
+	PlayerStates.Resize(MAXPLAYERS);
+	for (auto &states : PlayerStates)
+	{
+		states.Resize(Definitions.Size());
+	}
+}
+
+void FSolPhasePortalSystem::Initialize(FLevelLocals *level)
+{
+	Level = level;
+	Definitions.Clear();
+	PlayerStates.Clear();
+
+	if (Level == nullptr)
+		return;
+
+	static const FName groupKey = "user_sol_phase_group";
+	static const FName insideKey = "user_sol_phase_inside_side";
+	static const FName armDepthKey = "user_sol_phase_arm_depth";
+	static const FName entryDotKey = "user_sol_phase_entry_dot";
+	static const FName revealDotKey = "user_sol_phase_reveal_dot";
+
+	for (auto &line : Level->lines)
+	{
+		if (!SolPhaseRoleIs(Level, &line, "source"))
+			continue;
+
+		FLinePortal *portal = line.getPortal();
+		if (portal == nullptr || portal->mType != PORTT_TELEPORT || portal->mDestination == nullptr)
+		{
+			Printf(TEXTCOLOR_RED "SOL phase portal on line %d must be a PORTT_TELEPORT source with a destination anchor. Ignoring it.\n", line.Index());
+			continue;
+		}
+
+		const int group = GetUDMFInt(Level, UDMF_Line, line.Index(), groupKey);
+		const int insideSide = GetUDMFInt(Level, UDMF_Line, line.Index(), insideKey);
+		if (group <= 0 || (insideSide != 0 && insideSide != 1) || !SolPhaseRoleIs(Level, portal->mDestination, "destination") ||
+			GetUDMFInt(Level, UDMF_Line, portal->mDestination->Index(), groupKey) != group)
+		{
+			Printf(TEXTCOLOR_RED "SOL phase portal on line %d has invalid group, inside side, or destination anchor. Ignoring it.\n", line.Index());
+			continue;
+		}
+
+		FSolPhasePortalDef definition;
+		definition.SourceLine = line.Index();
+		definition.DestinationLine = portal->mDestination->Index();
+		definition.Group = group;
+		definition.InsideSide = uint8_t(insideSide);
+
+		const double armDepth = GetUDMFFloat(Level, UDMF_Line, line.Index(), armDepthKey);
+		const double entryDot = GetUDMFFloat(Level, UDMF_Line, line.Index(), entryDotKey);
+		const double revealDot = GetUDMFFloat(Level, UDMF_Line, line.Index(), revealDotKey);
+		if (armDepth > 0.0) definition.Thresholds.ArmDepth = armDepth;
+		if (entryDot > 0.0 && entryDot <= 1.0) definition.Thresholds.EntryDot = entryDot;
+		if (revealDot > 0.0 && revealDot <= 1.0) definition.Thresholds.RevealDot = revealDot;
+
+		Definitions.Push(definition);
+	}
+
+	NormalizeStateStorage();
+	if (sol_phaseportal_debug && Definitions.Size())
+		Printf("SOL phase portal: initialized %u map-authored definition(s)\n", Definitions.Size());
+}
+
+int FSolPhasePortalSystem::FindDefinition(const line_t *line) const
+{
+	if (line == nullptr)
+		return -1;
+	for (unsigned int index = 0; index < Definitions.Size(); ++index)
+	{
+		if (Definitions[index].SourceLine == line->Index() || Definitions[index].DestinationLine == line->Index())
+			return int(index);
+	}
+	return -1;
+}
+
+int FSolPhasePortalSystem::PlayerIndex(const AActor *actor) const
+{
+	if (actor == nullptr || actor->player == nullptr || actor->player->mo != actor)
+		return -1;
+	const ptrdiff_t player = actor->player - players;
+	return player >= 0 && player < MAXPLAYERS ? int(player) : -1;
+}
+
+ESolPhasePortalState FSolPhasePortalSystem::GetState(int player, int definition) const
+{
+	if (player < 0 || definition < 0 || unsigned(player) >= PlayerStates.Size() || unsigned(definition) >= PlayerStates[player].Size())
+		return ESolPhasePortalState::DORMANT_LOCAL;
+	return ESolPhasePortalState(PlayerStates[player][definition]);
+}
+
+ESolPhasePortalState FSolPhasePortalSystem::GetState(const AActor *actor, const line_t *line) const
+{
+	return GetState(PlayerIndex(actor), FindDefinition(line));
+}
+
+void FSolPhasePortalSystem::SetState(int player, int definition, ESolPhasePortalState state, const char *reason, double depth, double movementDot, double viewDot)
+{
+	if (player < 0 || definition < 0 || unsigned(player) >= PlayerStates.Size() || unsigned(definition) >= PlayerStates[player].Size())
+		return;
+	const auto oldState = GetState(player, definition);
+	if (oldState == state)
+		return;
+	PlayerStates[player][definition] = uint8_t(state);
+	if (sol_phaseportal_debug)
+	{
+		const auto &definitionData = Definitions[definition];
+		Printf("SOL phase portal %d player %d: %s -> %s (%s, depth %.2f, movement %.3f, view %.3f)\n",
+			definitionData.Group, player, SolPhaseStateName(oldState), SolPhaseStateName(state), reason, depth, movementDot, viewDot);
+	}
+}
+
+DVector2 FSolPhasePortalSystem::InwardNormal(const FSolPhasePortalDef &definition) const
+{
+	if (Level == nullptr || definition.SourceLine < 0 || unsigned(definition.SourceLine) >= Level->lines.Size())
+		return DVector2(0.0, 0.0);
+	const line_t *line = &Level->lines[definition.SourceLine];
+	DVector2 delta = line->Delta();
+	const double length = delta.Length();
+	if (length <= EQUAL_EPSILON)
+		return DVector2(0.0, 0.0);
+
+	DVector2 normal(-delta.Y / length, delta.X / length);
+	const DVector2 probe = line->v1->fPos() + normal;
+	if (P_PointOnLineSide(probe, line) != definition.InsideSide)
+		normal = -normal;
+	return normal;
+}
+
+double FSolPhasePortalSystem::SignedDepth(const FSolPhasePortalDef &definition, const DVector2 &pos) const
+{
+	if (Level == nullptr || definition.SourceLine < 0 || unsigned(definition.SourceLine) >= Level->lines.Size())
+		return 0.0;
+	const line_t *line = &Level->lines[definition.SourceLine];
+	const DVector2 delta = line->Delta();
+	const double length = delta.Length();
+	if (length <= EQUAL_EPSILON)
+		return 0.0;
+	const double cross = delta.X * (pos.Y - line->v1->fY()) - delta.Y * (pos.X - line->v1->fX());
+	const double distance = fabs(cross) / length;
+	return P_PointOnLineSide(pos, line) == definition.InsideSide ? distance : -distance;
+}
+
+bool FSolPhasePortalSystem::IsPhaseLine(const line_t *line) const
+{
+	return FindDefinition(line) >= 0;
+}
+
+bool FSolPhasePortalSystem::IsVisualPortalActive(const line_t *line, const FRenderViewpoint &view) const
+{
+	const int definition = FindDefinition(line);
+	if (definition < 0)
+		return line != nullptr && line->isVisualPortal();
+	const auto &definitionData = Definitions[definition];
+	if (view.player == nullptr)
+		return false;
+	const ptrdiff_t player = view.player - players;
+	if (player < 0 || player >= MAXPLAYERS || GetState(int(player), definition) != ESolPhasePortalState::REVEALED_REMOTE)
+		return false;
+	return FSolPhasePortalStateMachine::IsVisualActive(GetState(int(player), definition), line->Index() == definitionData.SourceLine,
+		P_PointOnLineSide(view.Pos.XY(), line) == definitionData.InsideSide);
+}
+
+bool FSolPhasePortalSystem::IsPassableForActor(const AActor *actor, const line_t *line, const DVector2 &oldPos, const DVector2 &newPos) const
+{
+	const int definition = FindDefinition(line);
+	if (definition < 0)
+		return line != nullptr && line->isLinePortal();
+	const auto &definitionData = Definitions[definition];
+	const int player = PlayerIndex(actor);
+	return player >= 0 && FSolPhasePortalStateMachine::IsTraversalActive(GetState(player, definition),
+		line->Index() == definitionData.SourceLine,
+		P_PointOnLineSide(oldPos, line) == definitionData.InsideSide && P_PointOnLineSide(newPos, line) != definitionData.InsideSide);
+}
+
+void FSolPhasePortalSystem::NotifyLocalCrossing(AActor *actor, const line_t *line, const DVector2 &oldPos, const DVector2 &newPos)
+{
+	const int definition = FindDefinition(line);
+	const int player = PlayerIndex(actor);
+	if (definition < 0 || player < 0 || line->Index() != Definitions[definition].SourceLine)
+		return;
+
+	const auto &definitionData = Definitions[definition];
+	if (P_PointOnLineSide(oldPos, line) == definitionData.InsideSide || P_PointOnLineSide(newPos, line) != definitionData.InsideSide)
+		return;
+
+	const DVector2 movement = SolPhaseNormalize(newPos - oldPos);
+	const DVector2 inward = InwardNormal(definitionData);
+	const DVector2 facing(actor->Angles.Yaw.Cos(), actor->Angles.Yaw.Sin());
+	const double movementDot = SolPhaseDot(movement, inward);
+	const double facingDot = SolPhaseDot(facing, inward);
+	const double depth = SignedDepth(definitionData, newPos);
+	const auto oldState = GetState(player, definition);
+	const auto state = FSolPhasePortalStateMachine::Advance(oldState, true, movementDot, facingDot, depth, 0.0, definitionData.Thresholds);
+	SetState(player, definition, state, "forward source crossing", depth, movementDot, facingDot);
+}
+
+void FSolPhasePortalSystem::NotifyTraversal(AActor *actor, const line_t *line)
+{
+	const int definition = FindDefinition(line);
+	const int player = PlayerIndex(actor);
+	if (definition < 0 || player < 0 || line->Index() != Definitions[definition].SourceLine)
+		return;
+	SetState(player, definition, FSolPhasePortalStateMachine::StateAfterSuccessfulTraversal(), "successful portal traversal");
+}
+
+void FSolPhasePortalSystem::Tick()
+{
+	if (Level == nullptr)
+		return;
+	for (unsigned int player = 0; player < PlayerStates.Size(); ++player)
+	{
+		if (!Level->PlayerInGame(player) || Level->Players[player] == nullptr || Level->Players[player]->mo == nullptr)
+			continue;
+		// A respawning player must never retain an armed or revealed illusion.
+		// The phase system is map/player-lifetime state rather than actor state,
+		// so reset it explicitly while the player is not alive.
+		if (Level->Players[player]->playerstate != PST_LIVE)
+		{
+			for (unsigned int definition = 0; definition < Definitions.Size(); ++definition)
+				SetState(int(player), int(definition), ESolPhasePortalState::DORMANT_LOCAL, "player not live");
+			continue;
+		}
+		AActor *actor = Level->Players[player]->mo;
+		const DVector2 facing(actor->Angles.Yaw.Cos(), actor->Angles.Yaw.Sin());
+		for (unsigned int definition = 0; definition < Definitions.Size(); ++definition)
+		{
+			const auto oldState = GetState(int(player), int(definition));
+			if (oldState == ESolPhasePortalState::DORMANT_LOCAL || oldState == ESolPhasePortalState::REVEALED_REMOTE)
+				continue;
+			const auto &definitionData = Definitions[definition];
+			const double depth = SignedDepth(definitionData, actor->Pos().XY());
+			const double revealDot = SolPhaseDot(facing, -InwardNormal(definitionData));
+			const auto state = FSolPhasePortalStateMachine::Advance(oldState, false, 0.0, 0.0, depth, revealDot, definitionData.Thresholds);
+			SetState(int(player), int(definition), state, "inside depth/view update", depth, 0.0, revealDot);
+		}
+	}
+}
+
+void FSolPhasePortalSystem::Serialize(FSerializer &arc, const char *key)
+{
+	if (arc.BeginObject(key))
+	{
+		arc("playerstates", PlayerStates);
+		arc.EndObject();
+	}
+	if (arc.isReading())
+		NormalizeStateStorage();
+}
+
+bool P_IsSolPhasePortalLine(const line_t *line)
+{
+	return line != nullptr && line->GetLevel()->PhasePortals.IsPhaseLine(line);
+}
+
+bool P_IsLinePortalVisibleForView(const line_t *line, const FRenderViewpoint &view)
+{
+	if (line == nullptr)
+		return false;
+	return line->GetLevel()->PhasePortals.IsVisualPortalActive(line, view);
+}
+
+bool P_IsLinePortalPassableForActor(const AActor *actor, const line_t *line, const DVector2 &oldPos, const DVector2 &newPos)
+{
+	if (line == nullptr)
+		return false;
+	return line->GetLevel()->PhasePortals.IsPassableForActor(actor, line, oldPos, newPos);
+}
+
+void P_NotifySolPhasePortalLocalCrossing(AActor *actor, const line_t *line, const DVector2 &oldPos, const DVector2 &newPos)
+{
+	if (line != nullptr)
+		line->GetLevel()->PhasePortals.NotifyLocalCrossing(actor, line, oldPos, newPos);
+}
+
+void P_NotifySolPhasePortalTraversal(AActor *actor, const line_t *line)
+{
+	if (line != nullptr)
+		line->GetLevel()->PhasePortals.NotifyTraversal(actor, line);
+}
 
 //============================================================================
 //

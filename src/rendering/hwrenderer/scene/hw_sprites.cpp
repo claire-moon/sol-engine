@@ -1746,7 +1746,7 @@ void HWDrawInfo::ProcessActorsInPortal(FLinePortalSpan *glport, area_t in_area)
 	for (auto port : glport->lines)
 	{
 		line_t *line = port->mOrigin;
-		if (line->isLinePortal())	// only crossable ones
+		if (line->isLinePortal() && (!P_IsSolPhasePortalLine(line) || P_IsLinePortalVisibleForView(line, Viewpoint)))	// only crossable ones
 		{
 			FLinePortal *port2 = port->mDestination->getPortal();
 			// process only if the other side links back to this one.

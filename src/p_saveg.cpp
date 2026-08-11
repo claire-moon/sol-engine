@@ -1011,7 +1011,9 @@ void FLevelLocals::Serialize(FSerializer &arc, bool hubload)
 	if (arc.isReading())
 	{
 		FinalizePortals();
+		PhasePortals.Initialize(this);
 	}
+	PhasePortals.Serialize(arc, "solphaseportals");
 
 	// [ZZ] serialize health groups
 	P_SerializeHealthGroups(this, arc);

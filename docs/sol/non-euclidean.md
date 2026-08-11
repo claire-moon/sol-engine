@@ -5,8 +5,8 @@ rather than a map-specific teleport effect.
 
 ## Contract
 
-The contract uses the engine's native linked line-portal machinery as the first
-stable SOL! non-Euclidean primitive. A linked pair is reciprocal, interactive,
+The contract keeps the engine's native linked line-portal machinery as the
+conventional non-Euclidean primitive. A linked pair is reciprocal, interactive,
 passable, preserves actor/projectile traversal, and translates world position
 between two physically remote linedefs while rendering through the destination.
 The paired lines must have compatible dimensions, opposite-facing orientation,
@@ -17,25 +17,34 @@ For UDMF test content the canonical primitive is `Line_SetPortal` (`special =
 linedef ID. The destination must point back to the source through its own linked
 portal definition.
 
-SOL! does not change linked-portal traversal according to player view direction,
-movement direction, or map-specific linedef IDs. Portal rendering and movement
-remain engine primitives; concealment and reveal behavior belong to authored map
-geometry.
+SOL! also provides an opt-in phase portal for authored impossible rooms. It is
+not a special case for TESTMAP IDs and does not modify global portal flags. A
+phase source uses `PORTT_TELEPORT` (`arg2 = 1`) and retained UDMF properties:
+`user_sol_phase_role`, `user_sol_phase_group`, `user_sol_phase_inside_side`,
+`user_sol_phase_arm_depth`, `user_sol_phase_entry_dot`, and
+`user_sol_phase_reveal_dot`. Its destination is a `user_sol_phase_role =
+"destination"` anchor with no reverse destination ID.
+
+The engine holds `DORMANT_LOCAL`, `ENTERED_FORWARD`, `ARMED_INSIDE`, and
+`REVEALED_REMOTE` state per player and phase group. The source remains a normal
+local two-sided doorway until the player crosses into its declared inside side
+with both actual movement and canonical player-facing dot products above the
+authored entry threshold. Reaching arm depth, then looking outward across the
+reveal threshold, latches the remote portal. The successful revealed
+inside-to-outside teleport resets that player to `DORMANT_LOCAL` in the same
+gameplay tic. Non-player movement, unowned traces, sound, and AI sight stay
+local in v0.4; this avoids an undefined global topology in multiplayer.
 
 ## TESTMAP demonstrations
 
-E1M1 is presented to the player as `TESTMAP`. It contains two reciprocal linked
-portal demonstrations.
+E1M1 is presented to the player as `TESTMAP`. It contains a stateful phase
+portal demonstration and a separate reciprocal linked portal demonstration.
 
-The illusion pair uses linedef IDs 9001 and 9002. Its local chamber has an
-ordinary physical entrance on a side wall, while the portal threshold is placed
-on a different wall. A player can therefore enter the chamber normally, turn to
-look back toward the physical entrance, and walk backward through the portal.
-The remote chamber uses the same material and dimensional language, and its
-ordinary exit is arranged away from the portal sightline. Looking back after
-leaving the remote chamber does not put the original physical entrance directly
-behind the portal threshold. The impossible-room effect is produced by layout,
-matching surfaces, and occlusion rather than conditional teleport code.
+The phase source is linedef 9001, the actual entrance to a physically local
+dead-end Phase Room. Linedef 9002 is its remote destination-only anchor. The
+room stays local on entry and only reveals 9002 after a forward-facing entry,
+interior arm depth, and an outward turn. Immediately after the source teleport,
+9001 is dormant again, so probing backward over 9002 is wholly local.
 
 The portal-lab pair uses linedef IDs 9011 and 9012. It is intentionally less
 concealed so rendering through a linked portal can be inspected directly. The

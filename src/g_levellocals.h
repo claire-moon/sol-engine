@@ -508,6 +508,7 @@ public:
 
 	TArray<FSectorPortal> sectorPortals;
 	TArray<FLinePortal> linePortals;
+	FSolPhasePortalSystem PhasePortals;
 
 	// Lightmaps
 	TArray<LightmapSurface> LMSurfaces;
